@@ -1,49 +1,63 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\BreakListener;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+namespace Fabiang\ExceptionGenerator\BreakListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\TestHelper\MockDirectoryIterator;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\BreakListener\RootDirectoryListener
+ * @coversDefaultClass Fabiang\ExceptionGenerator\BreakListener\RootDirectoryListener
  */
 final class RootDirectoryListenerTest extends TestCase
 {
-
-    /**
-     * @var RootDirectoryListener
-     */
-    private $object;
-
-    /**
-     * @var MockDirectoryIterator
-     */
-    private $mockedDirectoryIterator;
+    private RootDirectoryListener $object;
+    private MockObject $mockedDirectoryIterator;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->object                  = new RootDirectoryListener;
+        $this->object = new RootDirectoryListener();
+
         $this->mockedDirectoryIterator = $this->createMock(
-            'Burntromi\ExceptionGenerator\TestHelper\MockDirectoryIterator'
+            MockDirectoryIterator::class
         );
+
+        $this->mockedDirectoryIterator->expects($this->once())
+            ->method('getExtension')
+            ->willReturn('php');
+
+        $this->mockedDirectoryIterator->expects($this->once())
+            ->method('getBasename')
+            ->willReturn('test.php');
+
+        $this->mockedDirectoryIterator->expects($this->once())
+            ->method('isDir')
+            ->willReturn(false);
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent
+     *
      * @covers ::onBreak
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent
      */
-    public function testOnBreakUnix()
+    public function testOnBreakUnix(): void
     {
         $root = $this->mockedDirectoryIterator;
 
         $root->expects($this->once())
-                ->method('getPath')
-                ->willReturn('/');
+            ->method('getPath')
+            ->willReturn('/');
+
+        $root->expects($this->once())
+            ->method('getPathname')
+            ->willReturn('/test.php');
 
         $event = new FileEvent($root);
         $this->object->onBreak($event);
@@ -51,17 +65,21 @@ final class RootDirectoryListenerTest extends TestCase
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent
+     *
      * @covers ::onBreak
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent
      */
-    public function testOnBreakWindows()
+    public function testOnBreakWindows(): void
     {
-
         $root = $this->mockedDirectoryIterator;
 
         $root->expects($this->once())
-                ->method('getPath')
-                ->willReturn('c:\\');
+            ->method('getPath')
+            ->willReturn('c:\\');
+
+        $root->expects($this->once())
+            ->method('getPathname')
+            ->willReturn('c:\\test.php');
 
         $event = new FileEvent($root);
         $this->object->onBreak($event);

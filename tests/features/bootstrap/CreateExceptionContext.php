@@ -1,10 +1,19 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\IntegrationTest;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\IntegrationTest;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Gherkin\Node\PyStringNode;
+use InvalidArgumentException;
+
+use function file_get_contents;
+use function file_put_contents;
+use function json_encode;
+use function PHPUnit\Framework\assertFileExists;
+use function PHPUnit\Framework\assertStringMatchesFormat;
 
 /**
  * Defines application features from the specific context.
@@ -14,7 +23,7 @@ class CreateExceptionContext extends AbstractContext implements Context, Snippet
     /**
      * @Given a path containing php classes with namespaces
      */
-    public function aPathContainingPhpClassesWithNamespaces()
+    public function aPathContainingPhpClassesWithNamespaces(): void
     {
         file_put_contents(
             $this->getOptions()->get('path') . '/project/src/Foo/MyClass.php',
@@ -25,7 +34,7 @@ class CreateExceptionContext extends AbstractContext implements Context, Snippet
     /**
      * @Given a path containing php classes with namespaces in same path
      */
-    public function aPathContainingPhpClassesWithNamespacesInSamePath()
+    public function aPathContainingPhpClassesWithNamespacesInSamePath(): void
     {
         file_put_contents(
             $this->getOptions()->get('path') . '/project/src/Foo/Bar/My/MyClass.php',
@@ -36,33 +45,34 @@ class CreateExceptionContext extends AbstractContext implements Context, Snippet
     /**
      * @Given a path containing a composer.json with a :namespaceType namespace
      */
-    public function aPathContainingAComposerJsonWithANamespace($namespaceType)
+    public function aPathContainingAComposerJsonWithANamespace(string $namespaceType): void
     {
-        $composerJson = array('autoload' => array());
+        $composerJson = ['autoload' => []];
 
         switch ($namespaceType) {
             case 'psr-4':
-                $composerJson['autoload']['psr-4'] = array(
-                    'Foo\Bar\\' => 'src/Foo/Bar/'
-                );
+                $composerJson['autoload']['psr-4'] = [
+                    'Foo\Bar\\' => 'src/Foo/Bar/',
+                ];
                 break;
             case 'psr-0':
-                $composerJson['autoload']['psr-0'] = array(
-                    'Foo\Bar\\' => 'src/'
-                );
+                $composerJson['autoload']['psr-0'] = [
+                    'Foo\Bar\\' => 'src/',
+                ];
                 break;
             default:
-                throw new \InvalidArgumentException('Invalid namespace type given');
+                throw new InvalidArgumentException('Invalid namespace type given');
         }
         file_put_contents(
-                $this->getOptions()->get('path') . '/project/composer.json', json_encode($composerJson)
+            $this->getOptions()->get('path') . '/project/composer.json',
+            json_encode($composerJson)
         );
     }
 
     /**
      * @Then a file named :file should be created in :path with content
      */
-    public function aFileNamedShouldBeCreatedWithContent($file, $path, PyStringNode $content)
+    public function aFileNamedShouldBeCreatedWithContent(string $file, string $path, PyStringNode $content): void
     {
         $file = $this->getOptions()->get('path') . $path . $file;
         assertFileExists($file);
@@ -72,7 +82,7 @@ class CreateExceptionContext extends AbstractContext implements Context, Snippet
     /**
      * @Given option for disabling parent exception search is :option
      */
-    public function applicationWithDisabledParentSearch($option)
+    public function applicationWithDisabledParentSearch(string $option): void
     {
         if ('set' === $option) {
             $this->getOptions()->add('inputOptions', '--no-parents', true);

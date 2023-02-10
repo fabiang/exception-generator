@@ -1,10 +1,19 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\IntegrationTest;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\IntegrationTest;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use org\bovigo\vfs\vfsStream;
+
+use function file_get_contents;
+use function file_put_contents;
+use function PHPUnit\Framework\assertFileExists;
+use function PHPUnit\Framework\assertNotSame;
+use function PHPUnit\Framework\assertSame;
+use function unlink;
 
 /**
  * Defines application features from the specific context.
@@ -14,24 +23,24 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Given Directory structure for templates
      */
-    public function directoryStructureForTemplates()
+    public function directoryStructureForTemplates(): void
     {
-        vfsStream::setup('root', null, array(
-            'project' => array(
-                'templates' => array(
+        vfsStream::setup('root', null, [
+            'project'           => [
+                'templates' => [
                     'exception.phtml' => 'ExceptionTemplateCurrentDir',
                     'interface.phtml' => 'InterfaceTemplateCurrentDir',
-                ),
-            ),
-            'global_templates' => array(
+                ],
+            ],
+            'global_templates'  => [
                 'exception.phtml' => 'ExceptionTemplateGlobal',
                 'interface.phtml' => 'InterfaceTemplateGlobal',
-            ),
-            'project_templates' => array(
+            ],
+            'project_templates' => [
                 'exception.phtml' => 'ExceptionTemplateProject',
                 'interface.phtml' => 'InterfaceTemplateProject',
-            )
-        ));
+            ],
+        ]);
 
         $this->getOptions()->set('path', vfsStream::url('root'));
         $this->getOptions()->set('home', $this->getOptions()->get('path'));
@@ -40,7 +49,7 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Given Template path is passed as option
      */
-    public function templatePathIsPassedAsOption()
+    public function templatePathIsPassedAsOption(): void
     {
         $this->getOptions()->add(
             'inputOptions',
@@ -52,9 +61,9 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Given Template path is not passed as option
      */
-    public function templatePathIsNotPassedAsOption()
+    public function templatePathIsNotPassedAsOption(): void
     {
-        $options = $this->getOptions();
+        $options      = $this->getOptions();
         $inputOptions = $options->get('inputOptions');
         unset($inputOptions['--template-path']);
         $options->set('inputOptions', $inputOptions);
@@ -63,7 +72,7 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Given interface template is remove from passed template path
      */
-    public function interfaceTemplateIsRemoveFromPassedTemplatePath()
+    public function interfaceTemplateIsRemoveFromPassedTemplatePath(): void
     {
         unlink($this->getOptions()->get('path') . '/project/templates/interface.phtml');
     }
@@ -71,7 +80,7 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Given Project template path configured in config
      */
-    public function projectTemplatePathConfiguredInConfig()
+    public function projectTemplatePathConfiguredInConfig(): void
     {
         $path = $this->getOptions()->get('path');
         file_put_contents(
@@ -84,21 +93,21 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Given Global template path configured in config
      */
-    public function globalTemplatePathConfiguredInConfig()
+    public function globalTemplatePathConfiguredInConfig(): void
     {
         $path = $this->getOptions()->get('path');
         file_put_contents(
             $path . '/.exception-generator.json',
-            '{"templatepath":{"global": "'. $path . '/global_templates"}}'
+            '{"templatepath":{"global": "' . $path . '/global_templates"}}'
         );
     }
 
     /**
      * @Then templates from template path should have been used
      */
-    public function templatesFromTemplatePathShouldHaveBeenUsed()
+    public function templatesFromTemplatePathShouldHaveBeenUsed(): void
     {
-        $path = $this->getOptions()->get('path');
+        $path          = $this->getOptions()->get('path');
         $exceptionFile = $path . '/project/Exception/BadMethodCallException.php';
         assertFileExists($exceptionFile);
         assertSame('ExceptionTemplateCurrentDir', file_get_contents($exceptionFile));
@@ -107,9 +116,9 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Then template from project configuration from global configuration should have been used
      */
-    public function templateFromProjectConfigurationFromGlobalConfigurationShouldHaveBeenUsed()
+    public function templateFromProjectConfigurationFromGlobalConfigurationShouldHaveBeenUsed(): void
     {
-        $path = $this->getOptions()->get('path');
+        $path          = $this->getOptions()->get('path');
         $exceptionFile = $path . '/project/Exception/BadMethodCallException.php';
         assertFileExists($exceptionFile);
         assertSame('ExceptionTemplateProject', file_get_contents($exceptionFile));
@@ -118,9 +127,9 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Then template from global configuration from global configuration should have been used
      */
-    public function templateFromGlobalConfigurationFromGlobalConfigurationShouldHaveBeenUsed()
+    public function templateFromGlobalConfigurationFromGlobalConfigurationShouldHaveBeenUsed(): void
     {
-        $path = $this->getOptions()->get('path');
+        $path          = $this->getOptions()->get('path');
         $exceptionFile = $path . '/project/Exception/BadMethodCallException.php';
         assertFileExists($exceptionFile);
         assertSame('ExceptionTemplateGlobal', file_get_contents($exceptionFile));
@@ -129,9 +138,9 @@ class TemplateContext extends AbstractContext implements Context, SnippetAccepti
     /**
      * @Then template from passed path for interface shouldn't have been used
      */
-    public function templateFromPassedPathForInterfaceShouldnTHaveBeenUsed()
+    public function templateFromPassedPathForInterfaceShouldnTHaveBeenUsed(): void
     {
-        $path = $this->getOptions()->get('path');
+        $path          = $this->getOptions()->get('path');
         $exceptionFile = $path . '/project/Exception/ExceptionInterface.php';
         assertFileExists($exceptionFile);
         assertNotSame('InterfaceTemplateCurrentDir', file_get_contents($exceptionFile));

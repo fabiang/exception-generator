@@ -1,57 +1,55 @@
 <?php
-namespace Burntromi\ExceptionGenerator\FileLoopListener;
 
-use PHPUnit_Framework_TestCase as TestCase;
-use org\bovigo\vfs\vfsStream;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\FileLoopListener;
+
 use DirectoryIterator;
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Resolver\NamespaceResolver;
+use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\FileLoopListener\PHPFileListener
+ * @coversDefaultClass Fabiang\ExceptionGenerator\FileLoopListener\PHPFileListener
  */
 final class PHPFileListenerTest extends TestCase
 {
-    /**
-     * @var PHPFileListener
-     */
-    private $object;
-
-    /**
-     *
-     * @var PHPUnit_Framework_MockObject_MockObject
-     */
-    private $namespaceResolver;
+    private PHPFileListener $object;
+    private MockObject $namespaceResolver;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->namespaceResolver = $this->createMock('Burntromi\ExceptionGenerator\Resolver\NamespaceResolver');
-        $this->object = new PHPFileListener($this->namespaceResolver);
+        $this->namespaceResolver = $this->createMock(NamespaceResolver::class);
+        $this->object            = new PHPFileListener($this->namespaceResolver);
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent
+     *
      * @covers ::onFile
      * @covers ::__construct
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent
      */
-    public function testOnFile()
+    public function testOnFile(): void
     {
-        vfsStream::setup('test', null, array('Test.php' => 'composer json content'));
+        vfsStream::setup('test', null, ['Test.php' => 'composer json content']);
 
         $this->namespaceResolver->expects($this->once())
             ->method('resolve')
             ->with(
                 $this->equalTo(vfsStream::url('test/Test.php')),
-                $this->equalTo(array())
+                $this->equalTo([])
             )
             ->will($this->returnValue('MyNamespace\\'));
 
         $directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $directoryIterator->seek(2);
-        $event             = new FileEvent($directoryIterator);
+        $event = new FileEvent($directoryIterator);
 
         $this->object->onFile($event);
         $this->assertSame('MyNamespace\\', $event->getNamespace());

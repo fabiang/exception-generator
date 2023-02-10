@@ -1,36 +1,31 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Event;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
-use org\bovigo\vfs\vfsStream;
+namespace Fabiang\ExceptionGenerator\Event;
+
 use DirectoryIterator;
+use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\Event\FileEvent
+ * @coversDefaultClass Fabiang\ExceptionGenerator\Event\FileEvent
  */
 final class FileEventTest extends TestCase
 {
-    /**
-     * @var FileEvent
-     */
-    private $object;
-
-    /**
-     * @var \DirectoryIterator
-     */
-    private $directoryIterator;
+    private FileEvent $object;
+    private DirectoryIterator $directoryIterator;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        vfsStream::setup('test', null, array(
-            'directory' => array(),
+        vfsStream::setup('test', null, [
+            'directory' => [],
             'file.txt'  => 'test content',
-        ));
+        ]);
         $this->directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $this->object            = new FileEvent($this->directoryIterator->current());
     }
@@ -44,7 +39,7 @@ final class FileEventTest extends TestCase
      * @covers ::getFileExtension
      * @covers ::getDirname
      */
-    public function testGetterHasCorrectValuesDirectory()
+    public function testGetterHasCorrectValuesDirectory(): void
     {
         $this->directoryIterator->seek(2);
         $object = new FileEvent($this->directoryIterator->current());
@@ -64,7 +59,7 @@ final class FileEventTest extends TestCase
      * @covers ::getFileExtension
      * @covers ::getDirname
      */
-    public function testGetterHasCorrectValuesFile()
+    public function testGetterHasCorrectValuesFile(): void
     {
         $this->directoryIterator->seek(3);
         $object = new FileEvent($this->directoryIterator->current());
@@ -76,26 +71,28 @@ final class FileEventTest extends TestCase
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent::__construct
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent::getFileExtension
+     *
      * @covers ::getNamespace
      * @covers ::setNamespace
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent::__construct
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent::getFileExtension
      */
-    public function testSetAndGetNamespace()
+    public function testSetAndGetNamespace(): void
     {
         $this->object->setNamespace('test');
         $this->assertSame('test', $this->object->getNamespace());
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent::__construct
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent::getFileExtension
+     *
      * @covers ::getLoopedDirectories
      * @covers ::setLoopedDirectories
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent::__construct
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent::getFileExtension
      */
-    public function testSetAndGetLoopedDirectories()
+    public function testSetAndGetLoopedDirectories(): void
     {
-        $this->object->setLoopedDirectories(array('1', '2', '3'));
-        $this->assertSame(array('1', '2', '3'), $this->object->getLoopedDirectories());
+        $this->object->setLoopedDirectories(['1', '2', '3']);
+        $this->assertSame(['1', '2', '3'], $this->object->getLoopedDirectories());
     }
 }

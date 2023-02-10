@@ -1,34 +1,28 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Generator;
+declare(strict_types=1);
 
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+namespace Fabiang\ExceptionGenerator\Generator;
+
 use DirectoryIterator;
-use Burntromi\ExceptionGenerator\BreakListener\GitDirectoryListener;
-use Burntromi\ExceptionGenerator\BreakListener\RootDirectoryListener;
-use Burntromi\ExceptionGenerator\DirLoopListener\ExceptionDirListener;
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\BreakListener\GitDirectoryListener;
+use Fabiang\ExceptionGenerator\BreakListener\RootDirectoryListener;
+use Fabiang\ExceptionGenerator\DirLoopListener\ExceptionDirListener;
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
+use function basename;
+use function count;
+use function dirname;
 
 class RecursiveParentExceptionResolver
 {
     /**
-     *
-     * @var EventDispatcherInterface
-     */
-    protected $eventDispatcher;
-
-    /**
      * provides a namespace dpending on looped folders after searching for parent exceptions, which you should use
-     *
-     * @var type String
      */
-    protected $providedNamespace;
+    protected string $providedNamespace;
 
-    /**
-     *
-     * @param EventDispatcherInterface $eventDispatcher
-     */
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    public function __construct(protected EventDispatcherInterface $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->registerDefaultListeners();
@@ -37,7 +31,7 @@ class RecursiveParentExceptionResolver
     /**
      * Register default listeners
      */
-    private function registerDefaultListeners()
+    private function registerDefaultListeners(): void
     {
         $this->eventDispatcher->addSubscriber(new GitDirectoryListener());
         $this->eventDispatcher->addSubscriber(new RootDirectoryListener());
@@ -46,10 +40,8 @@ class RecursiveParentExceptionResolver
 
     /**
      * Returns an array containing arrays with parent exception folder and its namespace
-     *
-     * @param string $path working path
      */
-    public function resolveExceptionDirs($path)
+    public function resolveExceptionDirs(string $path): array
     {
         $exceptionDirArray = null;
         $eventDispatcher   = $this->eventDispatcher;
@@ -62,7 +54,7 @@ class RecursiveParentExceptionResolver
             // loop over files/directories and check if the listener can find an exception directory
             foreach ($directory as $item) {
                 $exceptionDirectoryEvent = new FileEvent($item);
-                $eventDispatcher->dispatch('dir.loop', $exceptionDirectoryEvent);
+                $eventDispatcher->dispatch($exceptionDirectoryEvent, 'dir.loop');
                 //break early, cuz one exception directory can only appear once
                 if ($exceptionDirectoryEvent->isPropagationStopped()) {
                     $exceptionDirArray[] = $exceptionDirectoryEvent->getParentExceptionDir();
@@ -70,11 +62,10 @@ class RecursiveParentExceptionResolver
                 }
             }
 
-
             // check for listeners that check if the path iteration loop should be stopped
             foreach ($directory as $item) {
                 $breakEvent = new FileEvent($item);
-                $eventDispatcher->dispatch('file.break', $breakEvent);
+                $eventDispatcher->dispatch($breakEvent, 'file.break');
                 if (false !== $breakEvent->isPropagationStopped()) {
                     break 2;
                 }
@@ -82,8 +73,7 @@ class RecursiveParentExceptionResolver
             $path          = dirname($path) !== 'vfs:' ? dirname($path) : 'vfs://';
             $loopedPaths[] = basename($path);
             //break early cuz DirectoryIterator can't handle vfs root folder
-        } while ((0 === count($directory) || !$breakEvent->isPropagationStopped()) && $path !== 'vfs://');
-
+        } while ((0 === count($directory) || ! $breakEvent->isPropagationStopped()) && $path !== 'vfs://');
 
         return $exceptionDirArray;
     }
@@ -91,26 +81,21 @@ class RecursiveParentExceptionResolver
     /**
      * Get directory contents without dot files.
      *
-     * @param string $path
-     * @return DirectoryIterator[]
+     * @return array<int, DirectoryIterator>
      */
-    private function getDirectoryContents($path)
+    private function getDirectoryContents(string $path): iterable
     {
         $directory = new DirectoryIterator($path);
-        $items     = array();
+        $items     = [];
         foreach ($directory as $item) {
-            if (!$item->isDot()) {
+            if (! $item->isDot()) {
                 $items[] = clone $item;
             }
         }
         return $items;
     }
 
-    /**
-     *
-     * @return EventDispatcherInterface
-     */
-    public function getEventDispatcher()
+    public function getEventDispatcher(): EventDispatcherInterface
     {
         return $this->eventDispatcher;
     }

@@ -1,79 +1,84 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Generator;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
+namespace Fabiang\ExceptionGenerator\Generator;
+
+use Laminas\View\Renderer\PhpRenderer;
+use Laminas\View\Resolver\ResolverInterface;
 use org\bovigo\vfs\vfsStream;
-use \Zend\View\Renderer\PhpRenderer;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+
+use function file_put_contents;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\Generator\TemplateRenderer
+ * @coversDefaultClass Fabiang\ExceptionGenerator\Generator\TemplateRenderer
  */
 final class TemplateRendererTest extends TestCase
 {
-
-    /**
-     * @var TemplateRenderer
-     */
-    private $object;
-    private $resolver;
+    private TemplateRenderer $object;
+    private MockObject $resolver;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $templatePath   = vfsStream::url('test/templates');
-        $this->resolver = $this->createMock('\Zend\View\Resolver\ResolverInterface');
+        $this->resolver = $this->createMock(ResolverInterface::class);
         $this->resolver->expects($this->any())
-                ->method('resolve')
-                ->willReturnCallback(function ($name) use($templatePath) {
-                    return $templatePath . '/' . $name . '.phtml';
-                });
+            ->method('resolve')
+            ->willReturnCallback(function ($name) use ($templatePath) {
+                return $templatePath . '/' . $name . '.phtml';
+            });
 
-        $renderer     = new \Zend\View\Renderer\PhpRenderer;
+        $renderer = new PhpRenderer();
         $renderer->setResolver($this->resolver);
-        vfsStream::setup('test', null, array('templates' => array()));
+        vfsStream::setup('test', null, ['templates' => []]);
         $this->object = new TemplateRenderer();
         $this->object->addPath('exception', vfsStream::url('test/templates/exception.phtml'));
         $this->object->addPath('interface', vfsStream::url('test/templates/interface.phtml'));
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Generator\TemplateRenderer::addPath
+     *
      * @covers ::render
      * @covers ::__construct
-     * @uses Burntromi\ExceptionGenerator\Generator\TemplateRenderer::addPath
      * @dataProvider renderTestTemplate
      */
-    public function testRender($template, $templateName, $namespace, $exceptionName, $renderedFile)
-    {
+    public function testRender(
+        string $template,
+        string $templateName,
+        string $namespace,
+        ?string $exceptionName,
+        string $renderedFile
+    ): void {
         $path = vfsStream::url('test/templates/' . $templateName . '.phtml');
         file_put_contents($path, $template);
         $this->assertSame($renderedFile, $this->object->render($namespace, null, $exceptionName));
     }
 
-    /**
-     * @return array
-     */
-    public function renderTestTemplate()
+    public static function renderTestTemplate(): array
     {
-        return array(
-            array(
+        return [
+            [
                 'template'      => '<?php echo $namespace ?>',
                 'templateName'  => 'interface',
                 'namespace'     => 'foo\bar',
                 'exceptionName' => null,
                 'renderedFile'  => 'foo\bar',
-            ),
-            array(
+            ],
+            [
                 'template'      => '<?php echo $namespace ?> - <?php echo $exceptionName ?>',
                 'templateName'  => 'exception',
                 'namespace'     => 'foo\bar',
                 'exceptionName' => 'Test',
                 'renderedFile'  => 'foo\bar - Test',
-            ),
-        );
+            ],
+        ];
     }
 
     /**
@@ -81,15 +86,15 @@ final class TemplateRendererTest extends TestCase
      * @covers ::getRenderer
      * @covers ::addPath
      */
-    public function testZFRendererGetTemplatePathPassed()
+    public function testZFRendererGetTemplatePathPassed(): void
     {
         $templateException = vfsStream::url('test/templates/exception.phtml');
 
-        $renderer = new PhpRenderer;
+        $renderer = new PhpRenderer();
         $object   = new TemplateRenderer($renderer);
         $object->addPath('exception', $templateException);
 
-        $this->assertInstanceOf('\Zend\View\Renderer\PhpRenderer', $object->getRenderer());
+        $this->assertInstanceOf(PhpRenderer::class, $object->getRenderer());
         $this->assertSame($templateException, $object->getRenderer()->resolver()->resolve('exception'));
     }
 }

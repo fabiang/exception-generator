@@ -1,12 +1,14 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Generator;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\Generator;
 
 class ExceptionClassNames
 {
-    public static function getExceptionClassNames()
+    public static function getExceptionClassNames(): array
     {
-         $exceptionNames = array(
+        return [
             'BadMethodCallException',
             'DomainException',
             'InvalidArgumentException',
@@ -18,9 +20,7 @@ class ExceptionClassNames
             'RangeException',
             'RuntimeException',
             'UnderflowException',
-            'UnexpectedValueException'
-        );
-
-        return $exceptionNames;
+            'UnexpectedValueException',
+        ];
     }
 }

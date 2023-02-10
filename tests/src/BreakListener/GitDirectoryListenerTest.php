@@ -1,70 +1,71 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\BreakListener;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
-use org\bovigo\vfs\vfsStream;
+namespace Fabiang\ExceptionGenerator\BreakListener;
+
 use DirectoryIterator;
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\BreakListener\GitDirectoryListener
+ * @coversDefaultClass Fabiang\ExceptionGenerator\BreakListener\GitDirectoryListener
  */
 final class GitDirectoryListenerTest extends TestCase
 {
-    /**
-     * @var GitDirectoryListener
-     */
-    private $object;
+    private GitDirectoryListener $object;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->object = new GitDirectoryListener;
+        $this->object = new GitDirectoryListener();
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent
+     *
      * @covers ::onBreak
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent
      */
-    public function testOnBreakIsDotGit()
+    public function testOnBreakIsDotGit(): void
     {
-        vfsStream::setup('test', null, array('.git' => array()));
+        vfsStream::setup('test', null, ['.git' => []]);
 
         $directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $directoryIterator->seek(2);
-        $event             = new FileEvent($directoryIterator);
+        $event = new FileEvent($directoryIterator);
 
         $this->object->onBreak($event);
         $this->assertTrue($event->isPropagationStopped());
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent
+     *
      * @covers ::onBreak
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent
      */
-    public function testOnBreakIsDotGitButNoDirectory()
+    public function testOnBreakIsDotGitButNoDirectory(): void
     {
-        vfsStream::setup('test', null, array('.git' => 'is a file'));
+        vfsStream::setup('test', null, ['.git' => 'is a file']);
 
         $directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $directoryIterator->seek(2);
-        $event             = new FileEvent($directoryIterator);
+        $event = new FileEvent($directoryIterator);
 
         $this->object->onBreak($event);
         $this->assertFalse($event->isPropagationStopped());
     }
 
     /**
-     * @covers Burntromi\ExceptionGenerator\BreakListener\AbstractBreakListener::getSubscribedEvents
+     * @covers Fabiang\ExceptionGenerator\BreakListener\AbstractBreakListener::getSubscribedEvents
      */
-    public function testGetSubscribedEvents()
+    public function testGetSubscribedEvents(): void
     {
         $this->assertSame(
-            array('file.break' => array('onBreak')),
+            ['file.break' => ['onBreak']],
             $this->object->getSubscribedEvents()
         );
     }

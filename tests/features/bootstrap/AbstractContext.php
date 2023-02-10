@@ -1,9 +1,15 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\IntegrationTest;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\IntegrationTest\Initializer\OptionsAwareInterface;
-use Burntromi\ExceptionGenerator\IntegrationTest\Initializer\Options;
+namespace Fabiang\ExceptionGenerator\IntegrationTest;
+
+use Fabiang\ExceptionGenerator\IntegrationTest\Initializer\Options;
+use Fabiang\ExceptionGenerator\IntegrationTest\Initializer\OptionsAwareInterface;
+
+use function define;
+use function defined;
+use function ini_set;
 
 /**
  * Abstract class for context classes.
@@ -21,33 +27,21 @@ abstract class AbstractContext implements OptionsAwareInterface
      */
     public function __construct()
     {
-        if (!defined('USER')) {
+        if (! defined('USER')) {
             define('USER', 'behat');
         }
 
         ini_set('date.timezone', 'UTC');
     }
 
-    /**
-     *
-     * @var Options
-     */
-    private $options;
+    private Options $options;
 
-    /**
-     *
-     * @return Options
-     */
-    public function getOptions()
+    public function getOptions(): Options
     {
         return $this->options;
     }
 
-    /**
-     *
-     * @param Options $options
-     */
-    public function setOptions(Options $options)
+    public function setOptions(Options $options): void
     {
         $this->options = $options;
     }

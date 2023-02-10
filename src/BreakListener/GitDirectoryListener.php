@@ -1,15 +1,17 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\BreakListener;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+namespace Fabiang\ExceptionGenerator\BreakListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
 
 class GitDirectoryListener extends AbstractBreakListener implements BreakListenerInterface
 {
     /**
      * {@inheritDoc}
      */
-    public function onBreak(FileEvent $event)
+    public function onBreak(FileEvent $event): void
     {
         if ($event->getBasename() === '.git' && $event->isDir()) {
             $event->stopPropagation();

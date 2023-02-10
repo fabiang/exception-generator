@@ -1,53 +1,46 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\TemplateResolver;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\TemplateResolver;
+
+use function file_exists;
+use function realpath;
+use function rtrim;
 
 class TemplateResolver
 {
     /**
      * Path to template.
-     *
-     * @var string
      */
-    protected $templatePath;
+    protected ?string $templatePath;
 
     /**
      * TemplatePathMatcher instance.
-     *
-     * @var TemplatePathMatcher
      */
-    protected $templatePathMatcher;
+    protected TemplatePathMatcher $templatePathMatcher;
 
     /**
      * transforms received path to a valid realpath
-     *
-     * @param string $templatePath
-     * @param TemplatePathMatcher $templatePathMatcher
      */
-    public function __construct($templatePath, TemplatePathMatcher $templatePathMatcher)
+    public function __construct(?string $templatePath, TemplatePathMatcher $templatePathMatcher)
     {
-        $this->templatePath        = rtrim($templatePath, '/');
+        $this->templatePath        = rtrim($templatePath ?? '', '/');
         $this->templatePathMatcher = $templatePathMatcher;
     }
 
     /**
      * resolves path for specific template
-     *
-     * @param string $templateName
-     * @return string
      */
-    public function resolve($templateName)
+    public function resolve(string $templateName): string
     {
         return $this->getTemplatePath($templateName) . '/' . $templateName;
     }
 
     /**
      * trys different paths to resolve a valid template path
-     *
-     * @param string $templateName
-     * @return string
      */
-    protected function getTemplatePath($templateName)
+    protected function getTemplatePath(string $templateName): string
     {
         if (file_exists($this->templatePath . '/' . $templateName)) {
             return $this->templatePath;

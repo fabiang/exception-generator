@@ -1,6 +1,6 @@
 The MIT License
 
-Copyright (c) 2016 Burntromi
+Copyright (c) 2016 Burntromi, 2023 Fabian Grutschus
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -12,6 +12,8 @@ Feature: Standard exceptions are generated
     Then a file named "BadMethodCallException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use BadMethodCallException as BaseBadMethodCallException;
@@ -27,6 +29,8 @@ Feature: Standard exceptions are generated
     And a file named "DomainException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use DomainException as BaseDomainException;
@@ -42,6 +46,8 @@ Feature: Standard exceptions are generated
     And a file named "InvalidArgumentException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use InvalidArgumentException as BaseInvalidArgumentException;
@@ -57,6 +63,8 @@ Feature: Standard exceptions are generated
     And a file named "LengthException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use LengthException as BaseLengthException;
@@ -72,6 +80,8 @@ Feature: Standard exceptions are generated
     And a file named "LogicException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use LogicException as BaseLogicException;
@@ -87,6 +97,8 @@ Feature: Standard exceptions are generated
     And a file named "OutOfBoundsException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use OutOfBoundsException as BaseOutOfBoundsException;
@@ -102,6 +114,8 @@ Feature: Standard exceptions are generated
     And a file named "OverflowException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use OverflowException as BaseOverflowException;
@@ -117,6 +131,8 @@ Feature: Standard exceptions are generated
     And a file named "RangeException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use RangeException as BaseRangeException;
@@ -132,6 +148,8 @@ Feature: Standard exceptions are generated
     And a file named "RuntimeException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use RuntimeException as BaseRuntimeException;
@@ -147,6 +165,8 @@ Feature: Standard exceptions are generated
     And a file named "UnderflowException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use UnderflowException as BaseUnderflowException;
@@ -162,6 +182,8 @@ Feature: Standard exceptions are generated
     And a file named "UnexpectedValueException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use UnexpectedValueException as BaseUnexpectedValueException;
@@ -177,12 +199,16 @@ Feature: Standard exceptions are generated
     And a file named "ExceptionInterface.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
+
+    use Throwable;
 
     /**
      * Generated at %s, %d %s %d %d:%d:%d +0000 by behat
      */
-    interface ExceptionInterface
+    interface ExceptionInterface extends Throwable
     {
     }
 
@@ -194,6 +220,8 @@ Feature: Standard exceptions are generated
     Then a file named "BadMethodCallException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use BadMethodCallException as BaseBadMethodCallException;
@@ -213,6 +241,8 @@ Feature: Standard exceptions are generated
     Then a file named "BadMethodCallException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use BadMethodCallException as BaseBadMethodCallException;
@@ -232,6 +262,8 @@ Feature: Standard exceptions are generated
     Then a file named "BadMethodCallException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use BadMethodCallException as BaseBadMethodCallException;

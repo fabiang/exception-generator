@@ -1,68 +1,67 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\FileLoopListener;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
-use org\bovigo\vfs\vfsStream;
+namespace Fabiang\ExceptionGenerator\FileLoopListener;
+
 use DirectoryIterator;
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Resolver\ComposerResolver;
+use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\FileLoopListener\ComposerJsonListener
+ * @coversDefaultClass Fabiang\ExceptionGenerator\FileLoopListener\ComposerJsonListener
  */
 final class ComposerJsonListenerTest extends TestCase
 {
-    /**
-     * @var ComposerJsonListener
-     */
-    private $object;
-
-    /**
-     *
-     * @var PHPUnit_Framework_MockObject_MockObject
-     */
-    private $composerResolver;
+    private ComposerJsonListener $object;
+    private MockObject $composerResolver;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->composerResolver = $this->createMock('Burntromi\ExceptionGenerator\Resolver\ComposerResolver');
+        $this->composerResolver = $this->createMock(ComposerResolver::class);
         $this->object           = new ComposerJsonListener($this->composerResolver);
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\FileEvent
+     *
      * @covers ::onFile
      * @covers ::__construct
-     * @uses Burntromi\ExceptionGenerator\Event\FileEvent
      */
-    public function testOnFile()
+    public function testOnFile(): void
     {
-        vfsStream::setup('test', null, array('composer.json' => 'composer json content'));
+        vfsStream::setup('test', null, ['composer.json' => 'composer json content']);
 
         $this->composerResolver->expects($this->once())
-                ->method('resolve')
-                ->with(
-                        $this->equalTo(vfsStream::url('test/composer.json')), $this->equalTo(array())
-                )
-                ->will($this->returnValue('MyNamespace\\'));
+            ->method('resolve')
+            ->with(
+                $this->equalTo(vfsStream::url('test/composer.json')),
+                $this->equalTo([])
+            )
+            ->will($this->returnValue('MyNamespace\\'));
 
         $directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $directoryIterator->seek(2);
-        $event             = new FileEvent($directoryIterator);
+        $event = new FileEvent($directoryIterator);
 
         $this->object->onFile($event);
         $this->assertSame('MyNamespace\\', $event->getNamespace());
     }
 
     /**
-     * @covers Burntromi\ExceptionGenerator\FileLoopListener\AbstractFileLoopListener
-     * @uses Burntromi\ExceptionGenerator\FileLoopListener\ComposerJsonListener::__construct
+     * @uses Fabiang\ExceptionGenerator\FileLoopListener\ComposerJsonListener::__construct
+     *
+     * @covers Fabiang\ExceptionGenerator\FileLoopListener\AbstractFileLoopListener
      */
-    public function testGetSubscribedEvents()
+    public function testGetSubscribedEvents(): void
     {
-        $this->assertSame(array('file.loop'      => array('onFile', 0)), $this->object->getSubscribedEvents());
+        $this->assertSame(['file.loop' => ['onFile', 0]], $this->object->getSubscribedEvents());
     }
 }

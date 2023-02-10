@@ -1,28 +1,37 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Cli\Command;
+declare(strict_types=1);
 
+namespace Fabiang\ExceptionGenerator\Cli\Command;
+
+use Fabiang\ExceptionGenerator\Generator\CreateException;
+use Fabiang\ExceptionGenerator\Generator\RecursiveNamespaceResolver;
+use Fabiang\ExceptionGenerator\Generator\RecursiveParentExceptionResolver;
+use Fabiang\ExceptionGenerator\Generator\TemplateRenderer;
+use Fabiang\ExceptionGenerator\Listener\CreateExceptionListener;
+use Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher;
+use Fabiang\ExceptionGenerator\TemplateResolver\TemplateResolver;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Burntromi\ExceptionGenerator\Generator\RecursiveNamespaceResolver;
-use Burntromi\ExceptionGenerator\Generator\RecursiveParentExceptionResolver;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Console\Input\InputOption;
-use Burntromi\ExceptionGenerator\Generator\CreateException;
-use Burntromi\ExceptionGenerator\Generator\TemplateRenderer;
-use Burntromi\ExceptionGenerator\Listener\CreateExceptionListener;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
-use Burntromi\ExceptionGenerator\TemplateResolver\TemplateResolver;
-use Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+use function array_reverse;
+use function getcwd;
+use function is_array;
+use function realpath;
+use function substr;
 
 class ExceptionGeneratorCommand extends Command
 {
     /**
      * {@inheritDoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('exception-generator')
             ->setDescription('Generates Exception Classes for php files in current dir.')
@@ -54,7 +63,7 @@ class ExceptionGeneratorCommand extends Command
     /**
      * {@inheritDoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ($input->getArgument('path')) {
             $path = $this->realpath($input->getArgument('path'));
@@ -62,15 +71,15 @@ class ExceptionGeneratorCommand extends Command
             $path = getcwd();
         }
 
-        /* @var $questionHelper \Symfony\Component\Console\Helper\QuestionHelper */
-        $questionHelper      = $this->getHelper('question');
-        $eventDispatcher     = new EventDispatcher;
+        /** @var QuestionHelper $questionHelper */
+        $questionHelper  = $this->getHelper('question');
+        $eventDispatcher = new EventDispatcher();
         $eventDispatcher->addSubscriber(new CreateExceptionListener($output, $input, $questionHelper));
         $namespaceResolver   = new RecursiveNamespaceResolver($eventDispatcher);
         $namespace           = $namespaceResolver->resolveNamespace($path);
         $templatePathMatcher = new TemplatePathMatcher($path, $this->getApplication()->getHome());
 
-        $templatePath     = $this->realpath($input->getOption('template-path')) ? : null;
+        $templatePath     = $this->realpath($input->getOption('template-path')) ?: null;
         $templateResolver = new TemplateResolver($templatePath, $templatePathMatcher);
 
         $exceptionTemplate = $templateResolver->resolve('exception.phtml');
@@ -122,8 +131,10 @@ class ExceptionGeneratorCommand extends Command
             }
         }
 
-        if ($parentExceptionNamespace && false === $useParents ||
-            ($parentExceptionNamespace && false !== $useParents)) {
+        if (
+            $parentExceptionNamespace && false === $useParents ||
+            ($parentExceptionNamespace && false !== $useParents)
+        ) {
             $output->writeln('BaseExceptionPath: not found/used', OutputInterface::VERBOSITY_VERY_VERBOSE);
         }
 
@@ -139,16 +150,19 @@ class ExceptionGeneratorCommand extends Command
             $input
         );
         $exceptionCreator->create($inputNamespace, $path . '/Exception', $parentExceptionNamespace);
+
+        return 0;
     }
 
     /**
      * Realpath.
-     *
-     * @param string $path
-     * @return string|false
      */
-    protected function realpath($path)
+    protected function realpath(?string $path): string|bool
     {
+        if (null === $path) {
+            return '';
+        }
+
         // extra check for virtual file system since vfsstream can't handle realpath()
         if (substr($path, 0, 6) === 'vfs://') {
             return $path;

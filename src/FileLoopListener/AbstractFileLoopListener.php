@@ -1,16 +1,18 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\FileLoopListener;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\FileLoopListener;
 
 abstract class AbstractFileLoopListener implements FileLoopListenerInterface
 {
     /**
      * {@inheritDoc}
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(
-            'file.loop' => array('onFile', 0),
-        );
+        return [
+            'file.loop' => ['onFile', 0],
+        ];
     }
 }

@@ -15,6 +15,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     Then a file named "BadMethodCallException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\BadMethodCallException as BaseBadMethodCallException;
@@ -30,6 +32,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And a file named "RuntimeException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\RuntimeException as BaseRuntimeException;
@@ -45,6 +49,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And a file named "InvalidArgumentException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\InvalidArgumentException as BaseInvalidArgumentException;
@@ -60,6 +66,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And a file named "ExceptionInterface.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\ExceptionInterface as BaseExceptionInterface;
@@ -80,6 +88,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     Then a file named "BadMethodCallException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\BadMethodCallException as BaseBadMethodCallException;
@@ -95,6 +105,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And a file named "RuntimeException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\RuntimeException as BaseRuntimeException;
@@ -110,6 +122,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And a file named "InvalidArgumentException.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\InvalidArgumentException as BaseInvalidArgumentException;
@@ -125,6 +139,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And a file named "ExceptionInterface.php" should be created in "/project/src/Foo/Bar/My/Exception/" with content
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\My\Exception;
 
     use Foo\Bar\Exception\ExceptionInterface as BaseExceptionInterface;
@@ -140,6 +156,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And File "InvalidArgumentException.php" is restored in "project/src/Foo/Bar/Exception/"
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Bar\Exception;
 
     use Foo\Exception\InvalidArgumentException as BaseInvalidArgumentException;
@@ -155,6 +173,8 @@ Feature: Subcomponent exceptions belong to their parent exception classes or not
     And File "InvalidArgumentException.php" is restored in "project/src/Foo/Exception/"
     """
     <?php
+    declare(strict_types=1);
+
     namespace Foo\Exception;
 
     use InvalidArgumentException as BaseInvalidArgumentException;

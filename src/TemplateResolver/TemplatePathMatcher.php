@@ -1,23 +1,35 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\TemplateResolver;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Exception\RuntimeException;
+namespace Fabiang\ExceptionGenerator\TemplateResolver;
+
+use Fabiang\ExceptionGenerator\Exception\RuntimeException;
+
+use function array_values;
+use function file_exists;
+use function file_get_contents;
+use function is_array;
+use function is_readable;
+use function json_decode;
+use function json_last_error;
+use function strlen;
+use function strpos;
+use function uksort;
+
+use const JSON_ERROR_NONE;
 
 class TemplatePathMatcher
 {
-    const CONFIG_NAME = '.exception-generator.json';
+    public const CONFIG_NAME = '.exception-generator.json';
 
-    protected $currentDir;
-    protected $configPath;
+    protected string $currentDir;
+    protected string $configPath;
 
     /**
      * defines current dir and path for config
-     *
-     * @param string $currentDir
-     * @param string $configPath
      */
-    public function __construct($currentDir, $configPath)
+    public function __construct(string $currentDir, string $configPath)
     {
         $this->currentDir = $currentDir;
         $this->configPath = $configPath . '/' . self::CONFIG_NAME;
@@ -26,18 +38,16 @@ class TemplatePathMatcher
     /**
      * checks if config is valid and returns matching paths
      *
-     * @param string $templateName
-     * @return boolean|string
      * @throws RuntimeException
      */
-    public function match($templateName)
+    public function match(string $templateName): bool|string
     {
-        if (!is_readable($this->configPath)) {
+        if (! is_readable($this->configPath)) {
             return false;
         }
 
         $jsonData = json_decode(file_get_contents($this->configPath), true);
-        if (json_last_error() != JSON_ERROR_NONE || !is_array($jsonData)) {
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($jsonData)) {
             throw new RuntimeException("Could not parse json configuration \"$this->configPath\".");
         }
 
@@ -46,14 +56,10 @@ class TemplatePathMatcher
 
     /**
      * trys to get the most matching path or global from config
-     *
-     * @param array $configData
-     * @param string $templateName
-     * @return boolean|string
      */
-    protected function getPaths(array $configData, $templateName)
+    protected function getPaths(array $configData, string $templateName): bool|string
     {
-        if (!isset($configData['templatepath']) || !is_array($configData['templatepath'])) {
+        if (! isset($configData['templatepath']) || ! is_array($configData['templatepath'])) {
             return false;
         }
 
@@ -79,13 +85,10 @@ class TemplatePathMatcher
 
     /**
      * filters paths matching to current directory
-     *
-     * @param array $projects
-     * @return array
      */
-    public function filterMatchingPaths(array $projects)
+    public function filterMatchingPaths(array $projects): array
     {
-        $filteredProjects = array();
+        $filteredProjects = [];
         foreach ($projects as $path => $projectTemplatePath) {
             // @todo Windows: case-insensitive match with stripos?
             if (false !== strpos($this->currentDir, $path)) {
@@ -98,12 +101,8 @@ class TemplatePathMatcher
 
     /**
      * trys to get the most related path where template was found
-     *
-     * @param array $filteredProjects
-     * @param string $templateName
-     * @return boolean|string
      */
-    protected function getMostRelatedPath(array $filteredProjects, $templateName)
+    protected function getMostRelatedPath(array $filteredProjects, string $templateName): bool|string
     {
         uksort($filteredProjects, function ($a, $b) {
             $strlenA = strlen($a);

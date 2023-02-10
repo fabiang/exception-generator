@@ -1,29 +1,27 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Generator;
+declare(strict_types=1);
 
-use Zend\View\Model\ViewModel;
-use Zend\View\Renderer\PhpRenderer;
-use Zend\View\Resolver\TemplateMapResolver;
+namespace Fabiang\ExceptionGenerator\Generator;
+
 use DateTime;
+use Exception;
+use Laminas\View\Model\ViewModel;
+use Laminas\View\Renderer\PhpRenderer;
+use Laminas\View\Resolver\TemplateMapResolver;
+
+use function defined;
+use function getenv;
+use function rtrim;
+use function str_replace;
 
 class TemplateRenderer
 {
-    /**
-     * @var PhpRenderer
-     */
-    protected $renderer;
-
-    /**
-     * Constructor.
-     *
-     * @param PhpRenderer $renderer Optional PhpRenderer instance
-     */
-    public function __construct(PhpRenderer $renderer = null)
+    public function __construct(protected ?PhpRenderer $renderer = null)
     {
         $this->renderer = $renderer;
         if (null === $renderer) {
-            $this->renderer = new PhpRenderer;
+            $this->renderer = new PhpRenderer();
         }
 
         $this->renderer->setResolver(new TemplateMapResolver());
@@ -35,9 +33,9 @@ class TemplateRenderer
      * @param string $type     Template type
      * @param string $template Template path
      */
-    public function addPath($type, $template)
+    public function addPath(string $type, string $template): void
     {
-        /* @var $resolver TemplateMapResolver */
+        /** @var TemplateMapResolver $resolver */
         $resolver = $this->renderer->resolver();
         $resolver->add($type, $template);
     }
@@ -48,13 +46,12 @@ class TemplateRenderer
      * @param string $namespace     Namespace of class
      * @param string $use Path for BaseExceptions to use, if they exists
      * @param string $exceptionName Type of exception (if null a interface is rendered)
-     * @return string
      */
-    public function render($namespace, $use = null, $exceptionName = null)
+    public function render(string $namespace, ?string $use = null, ?string $exceptionName = null): string
     {
-        $model = new ViewModel;
+        $model = new ViewModel();
         //replace because it will be added in template anyway
-        $namespace = str_replace('\\Exception', '', $namespace);
+        $namespace = str_replace(Exception::class, '', $namespace);
         if (null !== $exceptionName) {
             $model->setTemplate('exception');
             $model->setVariable('exceptionName', $exceptionName);
@@ -63,38 +60,33 @@ class TemplateRenderer
             $model->setTemplate('interface');
             $model->setVariable('use', $use);
         }
-        $model->setVariable('namespace', $namespace);
+
+        $model->setVariable('namespace', rtrim($namespace, '\\'));
         $model->setVariable('created', new DateTime());
         $model->setVariable('user', $this->getUsername());
-        $content = $this->renderer->render($model);
-
-        return $content;
+        return $this->renderer->render($model);
     }
 
-    private function getUsername()
+    private function getUsername(): string
     {
         if (defined('USER')) {
             return USER;
         }
 
         $user = getenv('USER');
-        if (!empty($user)) {
+        if (! empty($user)) {
             return $user;
         }
 
         $user = getenv('USERNAME');
-        if (!empty($user)) {
+        if (! empty($user)) {
             return $user;
         }
 
         return null;
     }
 
-    /**
-     *
-     * @return PhpRenderer
-     */
-    public function getRenderer()
+    public function getRenderer(): PhpRenderer
     {
         return $this->renderer;
     }

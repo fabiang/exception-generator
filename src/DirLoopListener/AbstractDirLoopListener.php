@@ -1,16 +1,18 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\DirLoopListener;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\DirLoopListener;
 
 abstract class AbstractDirLoopListener implements DirLoopListenerInterface
 {
     /**
      * {@inheritDoc}
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(
-            'dir.loop' => array('onDir', 0),
-        );
+        return [
+            'dir.loop' => ['onDir', 0],
+        ];
     }
 }

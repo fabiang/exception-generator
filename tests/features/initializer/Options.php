@@ -1,18 +1,17 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\IntegrationTest\Initializer;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\IntegrationTest\Initializer;
+
+use function array_key_exists;
 
 class Options
 {
+    /** @var array */
+    protected $options = [];
 
     /**
-     *
-     * @var array
-     */
-    protected $options = array();
-
-    /**
-     *
      * @param array $options
      */
     public function __construct(array $options)
@@ -22,12 +21,8 @@ class Options
 
     /**
      * Get option.
-     *
-     * @param string $option
-     * @param mixed $default
-     * @return mixed
      */
-    public function get($option, $default = null)
+    public function get(string $option, mixed $default = null): mixed
     {
         if (array_key_exists($option, $this->options)) {
             return $this->options[$option];
@@ -36,24 +31,15 @@ class Options
         return $default;
     }
 
-    /**
-     *
-     * @param string $option
-     * @param mixed $value
-     */
-    public function set($option, $value)
+    public function set(string $option, mixed $value): void
     {
         $this->options[$option] = $value;
     }
 
     /**
      * Add a value to existing option
-     *
-     * @param string $option
-     * @param string $key
-     * @param mixed $value
      */
-    public function add($option, $key, $value)
+    public function add(string $option, string $key, mixed $value): void
     {
         if (array_key_exists($option, $this->options)) {
             // @todo add behaviour when option is no array
@@ -63,10 +49,8 @@ class Options
 
     /**
      * Delete option.
-     *
-     * @param string $option
      */
-    public function delete($option)
+    public function delete(string $option): void
     {
         unset($this->options[$option]);
     }

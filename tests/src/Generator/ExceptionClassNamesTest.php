@@ -1,34 +1,34 @@
 <?php
-namespace Burntromi\ExceptionGenerator\Generator;
 
-use PHPUnit_Framework_TestCase as TestCase;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\Generator;
+
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\Generator\ExceptionClassNames
+ * @coversDefaultClass Fabiang\ExceptionGenerator\Generator\ExceptionClassNames
  */
 final class ExceptionClassNamesTest extends TestCase
 {
-    /**
-     * @var ExceptionClassNames
-     */
-    private $object;
+    private ExceptionClassNames $object;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->object = new ExceptionClassNames;
+        $this->object = new ExceptionClassNames();
     }
 
     /**
      * @covers ::getExceptionClassNames
      */
-    public function testGetExceptionClassNames()
+    public function testGetExceptionClassNames(): void
     {
         $this->assertSame(
-            array(
+            [
                 'BadMethodCallException',
                 'DomainException',
                 'InvalidArgumentException',
@@ -40,8 +40,8 @@ final class ExceptionClassNamesTest extends TestCase
                 'RangeException',
                 'RuntimeException',
                 'UnderflowException',
-                'UnexpectedValueException'
-            ),
+                'UnexpectedValueException',
+            ],
             $this->object->getExceptionClassNames()
         );
     }

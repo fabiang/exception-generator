@@ -1,7 +1,11 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Exception;
+declare(strict_types=1);
 
-interface ExceptionInterface
+namespace Fabiang\ExceptionGenerator\Exception;
+
+use Throwable;
+
+interface ExceptionInterface extends Throwable
 {
 }

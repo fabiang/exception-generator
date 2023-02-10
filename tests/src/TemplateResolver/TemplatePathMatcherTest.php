@@ -1,40 +1,40 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\TemplateResolver;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
+namespace Fabiang\ExceptionGenerator\TemplateResolver;
+
+use Fabiang\ExceptionGenerator\Exception\RuntimeException;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
+
+use function file_put_contents;
+use function json_encode;
+use function unlink;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher
+ * @coversDefaultClass Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher
  */
 final class TemplatePathMatcherTest extends TestCase
 {
-    /**
-     * @var TemplatePathMatcher
-     */
-    private $object;
-
-    /**
-     * @var string
-     */
-    private $configPath;
+    private TemplatePathMatcher $object;
+    private string $configPath;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        vfsStream::setup('root', null, array(
-            'home' => array(
-                '.exception-generator.json' => 'empty yet'
-            ),
-            'currentdir' => array('test' => array()),
-            'expectedpath' => array(
-                'exception.phtml' => ''
-            )
-        ));
+        vfsStream::setup('root', null, [
+            'home'         => [
+                '.exception-generator.json' => 'empty yet',
+            ],
+            'currentdir'   => ['test' => []],
+            'expectedpath' => [
+                'exception.phtml' => '',
+            ],
+        ]);
 
         $this->object = new TemplatePathMatcher(
             vfsStream::url('root/currentdir/test/bar'),
@@ -45,90 +45,94 @@ final class TemplatePathMatcherTest extends TestCase
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
+     *
      * @covers ::match
      * @covers ::getPaths
      * @covers ::filterMatchingPaths
      * @covers ::getMostRelatedPath
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
      */
-    public function testMatchProjectPaths()
+    public function testMatchProjectPaths(): void
     {
-        file_put_contents($this->configPath, json_encode(array(
-            'templatepath' => array(
-                'projects' => array(
-                    '/test/foo/bar' => '/bar/foo',
-                    vfsStream::url('root/currentdir') => vfsStream::url('root/unexpectedpath'),
-                    vfsStream::url('root') => vfsStream::url('root/unexpectedpath'),
+        file_put_contents($this->configPath, json_encode([
+            'templatepath' => [
+                'projects' => [
+                    '/test/foo/bar'                            => '/bar/foo',
+                    vfsStream::url('root/currentdir')          => vfsStream::url('root/unexpectedpath'),
+                    vfsStream::url('root')                     => vfsStream::url('root/unexpectedpath'),
                     vfsStream::url('root/currentdir/test/Bar') => vfsStream::url('root/unexpectedpath'),
-                    vfsStream::url('root/currentdir/test/bar') => vfsStream::url('root/expectedpath')
-                )
-            )
-        )));
+                    vfsStream::url('root/currentdir/test/bar') => vfsStream::url('root/expectedpath'),
+                ],
+            ],
+        ]));
 
         $this->assertSame(vfsStream::url('root/expectedpath'), $this->object->match('exception.phtml'));
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::match
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::filterMatchingPaths
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
+     *
      * @covers ::getPaths
      * @covers ::getMostRelatedPath
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::match
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::filterMatchingPaths
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
      */
-    public function testMatchGlobalTemplatePath()
+    public function testMatchGlobalTemplatePath(): void
     {
-        file_put_contents($this->configPath, json_encode(array(
-            'templatepath' => array(
-                'projects' => array(
-                    '/test/foo/bar' => '/bar/foo',
-                    vfsStream::url('root/currentdir') => vfsStream::url('root/unexpectedpath'),
-                    vfsStream::url('root') => vfsStream::url('root/unexpectedpath'),
+        file_put_contents($this->configPath, json_encode([
+            'templatepath' => [
+                'projects' => [
+                    '/test/foo/bar'                            => '/bar/foo',
+                    vfsStream::url('root/currentdir')          => vfsStream::url('root/unexpectedpath'),
+                    vfsStream::url('root')                     => vfsStream::url('root/unexpectedpath'),
                     vfsStream::url('root/currentdir/test/Bar') => vfsStream::url('root/unexpectedpath'),
-                    vfsStream::url('root/currentdir/test/bar') => vfsStream::url('root/unexpectedpath')
-                ),
-                'global' => vfsStream::url('root/expectedpath')
-            )
-        )));
+                    vfsStream::url('root/currentdir/test/bar') => vfsStream::url('root/unexpectedpath'),
+                ],
+                'global'   => vfsStream::url('root/expectedpath'),
+            ],
+        ]));
 
         $this->assertSame(vfsStream::url('root/expectedpath'), $this->object->match('exception.phtml'));
     }
 
     /**
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::match
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::match
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::filterMatchingPaths
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::getMostRelatedPath
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
+     *
      * @covers ::getPaths
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::filterMatchingPaths
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::getMostRelatedPath
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
      */
-    public function testMatchGlobalPathAndProjectsPathDoesntMatch()
+    public function testMatchGlobalPathAndProjectsPathDoesntMatch(): void
     {
-        file_put_contents($this->configPath, json_encode(array(
-            'templatepath' => array(
-                'projects' => array(
-                    '/test/foo/bar' => '/bar/foo',
-                    vfsStream::url('root/currentdir') => vfsStream::url('root/unexpectedpath'),
-                    vfsStream::url('root') => vfsStream::url('root/unexpectedpath'),
+        file_put_contents($this->configPath, json_encode([
+            'templatepath' => [
+                'projects' => [
+                    '/test/foo/bar'                            => '/bar/foo',
+                    vfsStream::url('root/currentdir')          => vfsStream::url('root/unexpectedpath'),
+                    vfsStream::url('root')                     => vfsStream::url('root/unexpectedpath'),
                     vfsStream::url('root/currentdir/test/Bar') => vfsStream::url('root/unexpectedpath'),
-                    vfsStream::url('root/currentdir/test/bar') => vfsStream::url('root/unexpectedpath')
-                ),
-                'global' => vfsStream::url('root/unexpectedpath')
-            )
-        )));
+                    vfsStream::url('root/currentdir/test/bar') => vfsStream::url('root/unexpectedpath'),
+                ],
+                'global'   => vfsStream::url('root/unexpectedpath'),
+            ],
+        ]));
 
         $this->assertFalse($this->object->match('exception.phtml'));
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
+     *
      * @covers ::match
      * @covers ::getPaths
-     * @uses Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher::__construct
      */
-    public function testMatchTemplatePathIsNotConfigured()
+    public function testMatchTemplatePathIsNotConfigured(): void
     {
-        file_put_contents($this->configPath, json_encode(array()));
+        file_put_contents($this->configPath, json_encode([]));
         $this->assertFalse($this->object->match('exception.phtml'));
 
-        file_put_contents($this->configPath, json_encode(array('templatepath' => null)));
+        file_put_contents($this->configPath, json_encode(['templatepath' => null]));
         $this->assertFalse($this->object->match('exception.phtml'));
     }
 
@@ -136,7 +140,7 @@ final class TemplatePathMatcherTest extends TestCase
      * @covers ::__construct
      * @covers ::match
      */
-    public function testMatchConfigFileIsntReadable()
+    public function testMatchConfigFileIsntReadable(): void
     {
         unlink($this->configPath);
 
@@ -146,20 +150,20 @@ final class TemplatePathMatcherTest extends TestCase
     /**
      * @covers ::__construct
      * @covers ::match
-     * @expectedException \Burntromi\ExceptionGenerator\Exception\RuntimeException
      */
-    public function testMatchConfigurationFileIsBroken()
+    public function testMatchConfigurationFileIsBroken(): void
     {
+        $this->expectException(RuntimeException::class);
         $this->object->match('foobar');
     }
 
     /**
      * @covers ::__construct
      * @covers ::match
-     * @expectedException \Burntromi\ExceptionGenerator\Exception\RuntimeException
      */
-    public function testMatchConfigurationDoesntReturnArray()
+    public function testMatchConfigurationDoesntReturnArray(): void
     {
+        $this->expectException(RuntimeException::class);
         file_put_contents($this->configPath, 'null');
         $this->object->match('foobar');
     }

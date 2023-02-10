@@ -1,25 +1,20 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\IntegrationTest\Initializer;
+declare(strict_types=1);
 
-use Behat\Behat\Context\Initializer\ContextInitializer;
+namespace Fabiang\ExceptionGenerator\IntegrationTest\Initializer;
+
 use Behat\Behat\Context\Context;
-use Burntromi\ExceptionGenerator\IntegrationTest\Initializer\Options;
-use Burntromi\ExceptionGenerator\IntegrationTest\Initializer\OptionsAwareInterface;
+use Behat\Behat\Context\Initializer\ContextInitializer;
+use Fabiang\ExceptionGenerator\IntegrationTest\Initializer\Options;
+use Fabiang\ExceptionGenerator\IntegrationTest\Initializer\OptionsAwareInterface;
 
 class ApplicationInitializer implements ContextInitializer
 {
+    protected Options $options;
 
     /**
-     * Options to be passed to contexts.
-     *
-     * @var array
-     */
-    protected $options;
-
-    /**
-     *
-     * @param array $options
+     * @param Options $options Options to be passed to contexts.
      */
     public function __construct(array $options)
     {
@@ -28,10 +23,8 @@ class ApplicationInitializer implements ContextInitializer
 
     /**
      * Set clones options to object.
-     *
-     * @param Context $context
      */
-    public function initializeContext(Context $context)
+    public function initializeContext(Context $context): void
     {
         if ($context instanceof OptionsAwareInterface) {
             $context->setOptions($this->options);

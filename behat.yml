@@ -1,17 +1,17 @@
 default:
-    suites:
-        default:
-            paths: [ %paths.base%/tests/features/ ]
-            contexts:
-                - Burntromi\ExceptionGenerator\IntegrationTest\FeatureContext
-                - Burntromi\ExceptionGenerator\IntegrationTest\CreateExceptionContext
-                - Burntromi\ExceptionGenerator\IntegrationTest\TemplateContext
-    testers:
-        strict: true
-    extensions:
-        Burntromi\ExceptionGenerator\IntegrationTest\Initializer\Extension:
-            options:
-                inputOptions:
-                    "--quiet": ""
-                    "--no-interaction": ""
-                    "-vv": ""
+  suites:
+    default:
+      paths: ["%paths.base%/tests/features/"]
+      contexts:
+        - Fabiang\ExceptionGenerator\IntegrationTest\FeatureContext
+        - Fabiang\ExceptionGenerator\IntegrationTest\CreateExceptionContext
+        - Fabiang\ExceptionGenerator\IntegrationTest\TemplateContext
+  testers:
+    strict: true
+  extensions:
+    Fabiang\ExceptionGenerator\IntegrationTest\Initializer\Extension:
+      options:
+        inputOptions:
+          "--quiet": ""
+          "--no-interaction": ""
+          "-vv": ""

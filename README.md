@@ -1,22 +1,22 @@
-# Burntromi Exception-Generator
+# Fabiang Exception-Generator
 
 In software projects and libraries it is very common and needed to generate exception
 classes. For generating these classes, the following best-practice enforced in the
 PHP environment:
 
-http://ralphschindler.com/2010/09/15/exception-best-practices-in-php-5-3
+[Exception Best Practices in PHP 5.3](https://web.archive.org/web/20190128162922/http://ralphschindler.com/2010/09/15/exception-best-practices-in-php-5-3)
 
 The manual creation of those classes is time-consuming and error-prone.
 To save time and reduce errors, this tool was made!
 
-[![Build Status](https://travis-ci.org/burntromi/exception-generator.svg?branch=master)](https://travis-ci.org/burntromi/exception-generator)
-[![Latest Stable Version](https://poser.pugx.org/burntromi/exception-generator/version)](https://packagist.org/packages/burntromi/exception-generator)
-[![License](https://poser.pugx.org/burntromi/exception-generator/license)](https://packagist.org/packages/burntromi/exception-generator)
+[![Continuous Integration](https://github.com/fabiang/exception-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/fabiang/exception-generator/actions/workflows/ci.yml)
+[![Latest Stable Version](https://poser.pugx.org/fabiang/exception-generator/version)](https://packagist.org/packages/fabiang/exception-generator)
+[![License](https://poser.pugx.org/fabiang/exception-generator/license)](https://packagist.org/packages/fabiang/exception-generator)
 
 ## Installation/Usage
 
 ```
-composer global require burntromi/exception-generator
+composer global require fabiang/exception-generator
 ```
 
 Make sure you have `~/.composer/vendor/bin/` in your path.

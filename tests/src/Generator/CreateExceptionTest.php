@@ -1,83 +1,73 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Generator;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
+namespace Fabiang\ExceptionGenerator\Generator;
+
+use Fabiang\ExceptionGenerator\Event\CreateExceptionEvent;
+use Fabiang\ExceptionGenerator\Generator\TemplateRenderer;
 use org\bovigo\vfs\vfsStream;
-use Burntromi\ExceptionGenerator\Event\CreateExceptionEvent;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+
+use function array_shift;
+use function file_get_contents;
+use function in_array;
+use function is_dir;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\Generator\CreateException
+ * @coversDefaultClass Fabiang\ExceptionGenerator\Generator\CreateException
  */
 final class CreateExceptionTest extends TestCase
 {
-
-    /**
-     * @var CreateException
-     */
-    private $object;
-
-    /**
-     * @var $eventDispatcher
-     */
-    private $eventDispatcher;
-
-    /**
-     *
-     * @var PHPUnit_Framework_MockObject_MockObject
-     */
-    private $templateRenderer;
+    private CreateException $object;
+    private MockObject $eventDispatcher;
+    private MockObject $templateRenderer;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->eventDispatcher  = $this->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
-        $this->templateRenderer = $this->createMock('Burntromi\ExceptionGenerator\Generator\TemplateRenderer');
+        $this->eventDispatcher  = $this->createMock(EventDispatcherInterface::class);
+        $this->templateRenderer = $this->createMock(TemplateRenderer::class);
 
         $this->object = new CreateException($this->eventDispatcher, $this->templateRenderer);
-        vfsStream::setup('src', null, array());
+        vfsStream::setup('src', null, []);
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Generator\ExceptionClassNames
+     * @uses Fabiang\ExceptionGenerator\Event\CreateExceptionEvent
+     *
      * @covers ::create
      * @covers ::__construct
      * @covers ::validate
      * @covers ::setOverwrite
      * @covers ::confirm
-     * @uses Burntromi\ExceptionGenerator\Generator\ExceptionClassNames
-     * @uses Burntromi\ExceptionGenerator\Event\CreateExceptionEvent
      * @dataProvider provideTestData
-     * @param string $confirm           What confirmation string should be returned
-     * @param bool   $overwrite         Set overwrite option at class
-     * @param bool   $writeFiles        Write test files to emulate existing files
-     * @param int    $dispatchCount     Expected count of EventDispatcher's dispatch() is called
-     * @param int    $templateCount     Expected count of TemplateRenderer called
-     * @param array  $expectedEvents    Events that are excepted to be called
-     * @param array  $expectedFileNames Expected files name when dispatching
-     * @param string $content           Expected content of generated files
      */
     public function testCreate(
-        $confirm,
-        $overwrite,
-        $writeFiles,
-        $dispatchCount,
-        $templateCount,
+        ?string $confirm,
+        bool $overwrite,
+        bool $writeFiles,
+        int $dispatchCount,
+        int $templateCount,
         array $expectedEvents,
         array $expectedFileNames,
-        $content = ''
-    ) {
+        string $content = ''
+    ): void {
         $this->object->setOverwrite($overwrite);
 
         $path = vfsStream::url('src/exceptions');
 
-        $knownClassNames = ExceptionClassNames::getExceptionClassNames();
+        $knownClassNames            = ExceptionClassNames::getExceptionClassNames();
         $expectedPassedClassNames   = $knownClassNames;
         $expectedPassedClassNames[] = null;
 
-        $files = array(
+        $files = [
             'BadMethodCallException.php'   => '',
             'DomainException.php'          => '',
             'InvalidArgumentException.php' => '',
@@ -91,18 +81,20 @@ final class CreateExceptionTest extends TestCase
             'UnderflowException.php'       => '',
             'UnexpectedValueException.php' => '',
             'ExceptionInterface.php'       => '',
-        );
+        ];
 
         if ($writeFiles) {
-            vfsStream::create(array('exceptions' => $files));
+            vfsStream::create(['exceptions' => $files]);
         }
+
+        $expectedFileNamesIndex = 0;
 
         $this->templateRenderer->expects($this->exactly($templateCount))
             ->method('render')
             ->with(
                 $this->equalTo('testnamespace'),
                 $this->equalTo(null),
-                $this->callback(function($name) use (&$expectedPassedClassNames) {
+                $this->callback(function ($name) use (&$expectedPassedClassNames) {
                     $currentName = array_shift($expectedPassedClassNames);
                     return $name === $currentName;
                 })
@@ -112,15 +104,16 @@ final class CreateExceptionTest extends TestCase
         $this->eventDispatcher->expects($this->exactly($dispatchCount))
             ->method('dispatch')
             ->with(
-                $this->callback(function ($eventName) use($expectedEvents) {
-                    return in_array($eventName, $expectedEvents);
-                }),
-                $this->callback(function (CreateExceptionEvent $event = null) use($path, &$expectedFileNames) {
-                    if ($event === null) {
+                $this->callback(function (CreateExceptionEvent $event) use (
+                    $path,
+                    &$expectedFileNames,
+                    &$expectedFileNamesIndex
+                ) {
+                    if (! isset($expectedFileNames[$expectedFileNamesIndex])) {
                         return true;
                     }
 
-                    $currentFile = array_shift($expectedFileNames);
+                    $currentFile = $expectedFileNames[$expectedFileNamesIndex++];
 
                     // Workaround for Phpunit calls callback more often then expected
                     // remove if {@link https://github.com/sebastianbergmann/phpunit-mock-objects/issues/181} is fixed
@@ -130,12 +123,16 @@ final class CreateExceptionTest extends TestCase
 
                     $currentFileName = $path . '/' . $currentFile;
                     return $event->getFileName() === $currentFileName;
+                }),
+                $this->callback(function ($eventName) use ($expectedEvents) {
+                    return in_array($eventName, $expectedEvents);
                 })
             )
-            ->willReturnCallback(function ($eventName, CreateExceptionEvent $event = null) use($confirm) {
+            ->willReturnCallback(function (CreateExceptionEvent $event, $eventName) use ($confirm) {
                 if ($eventName === 'overwrite.confirm') {
                     $event->setConfirm($confirm);
                 }
+                return $event;
             });
 
         $this->object->create('testnamespace', $path);
@@ -149,30 +146,27 @@ final class CreateExceptionTest extends TestCase
         }
     }
 
-    /**
-     * @return array
-     */
-    public function provideTestData()
+    public static function provideTestData(): array
     {
-        return array(
-            array(
+        return [
+            [
                 'confirm'           => null,
                 'overwrite'         => false,
                 'writeFiles'        => false,
                 'dispatchCount'     => 13,
                 'templateCount'     => 13,
-                'expectedEvents'    => array('write.file'),
-                'expectedFileNames' => array(),
+                'expectedEvents'    => ['write.file'],
+                'expectedFileNames' => [],
                 'content'           => 'testcontent',
-            ),
-            array(
+            ],
+            [
                 'confirm'           => null,
                 'overwrite'         => false,
                 'writeFiles'        => true,
                 'dispatchCount'     => 26,
                 'templateCount'     => 0,
-                'expectedEvents'    => array('overwrite.confirm', 'creation.skipped'),
-                'expectedFileNames' => array(
+                'expectedEvents'    => ['overwrite.confirm', 'creation.skipped'],
+                'expectedFileNames' => [
                     'BadMethodCallException.php',
                     'BadMethodCallException.php',
                     'DomainException.php',
@@ -199,17 +193,17 @@ final class CreateExceptionTest extends TestCase
                     'UnexpectedValueException.php',
                     'ExceptionInterface.php',
                     'ExceptionInterface.php',
-                ),
+                ],
                 'content'           => '',
-            ),
-            array(
+            ],
+            [
                 'confirm'           => 'yes',
                 'overwrite'         => false,
                 'writeFiles'        => true,
                 'dispatchCount'     => 26,
                 'templateCount'     => 13,
-                'expectedEvents'    => array('overwrite.confirm', 'write.file'),
-                'expectedFileNames' => array(
+                'expectedEvents'    => ['overwrite.confirm', 'write.file'],
+                'expectedFileNames' => [
                     'BadMethodCallException.php',
                     'BadMethodCallException.php',
                     'DomainException.php',
@@ -236,17 +230,18 @@ final class CreateExceptionTest extends TestCase
                     'UnexpectedValueException.php',
                     'ExceptionInterface.php',
                     'ExceptionInterface.php',
-                ),
+                ],
                 'content'           => 'testcontent',
-            ),
-            array(
+            ],
+            [
                 'confirm'           => null,
                 'overwrite'         => true,
                 'writeFiles'        => true,
                 'dispatchCount'     => 14,
                 'templateCount'     => 13,
-                'expectedEvents'    => array('overwrite.all', 'write.file'),
-                'expectedFileNames' => array(
+                'expectedEvents'    => ['overwrite.all', 'write.file'],
+                'expectedFileNames' => [
+                    null,
                     'BadMethodCallException.php',
                     'DomainException.php',
                     'InvalidArgumentException.php',
@@ -260,17 +255,18 @@ final class CreateExceptionTest extends TestCase
                     'UnderflowException.php',
                     'UnexpectedValueException.php',
                     'ExceptionInterface.php',
-                ),
+                ],
                 'content'           => 'testcontent',
-            ),
-            array(
+            ],
+            [
                 'confirm'           => 'all',
                 'overwrite'         => false,
                 'writeFiles'        => true,
                 'dispatchCount'     => 15,
                 'templateCount'     => 13,
-                'expectedEvents'    => array('overwrite.all', 'overwrite.confirm', 'write.file'),
-                'expectedFileNames' => array(
+                'expectedEvents'    => ['overwrite.all', 'overwrite.confirm', 'write.file'],
+                'expectedFileNames' => [
+                    null,
                     'BadMethodCallException.php',
                     'BadMethodCallException.php',
                     'DomainException.php',
@@ -285,9 +281,9 @@ final class CreateExceptionTest extends TestCase
                     'UnderflowException.php',
                     'UnexpectedValueException.php',
                     'ExceptionInterface.php',
-                ),
+                ],
                 'content'           => 'testcontent',
-            ),
-        );
+            ],
+        ];
     }
 }

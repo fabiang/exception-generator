@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+declare(strict_types=1);
+
 $autoload = false;
 
 foreach (array(
@@ -18,8 +20,8 @@ if (false === $autoload) {
     fwrite(
         STDERR,
         'You need to set up the project dependencies using the following commands:' . PHP_EOL .
-        'wget http://getcomposer.org/composer.phar' . PHP_EOL .
-        'php composer.phar install' . PHP_EOL
+            'wget http://getcomposer.org/composer.phar' . PHP_EOL .
+            'php composer.phar install' . PHP_EOL
     );
     exit(1);
 }
@@ -30,7 +32,7 @@ if (empty(ini_get('date.timezone'))) {
     ini_set('date.timezone', 'UTC');
 }
 
-use Burntromi\ExceptionGenerator\Cli\Console\Application;
+use Fabiang\ExceptionGenerator\Cli\Console\Application;
 
-$console = new Application('Burntromi Exception-Generator', '1.0.0');
+$console = new Application('Fabiang Exception-Generator', '1.0.0');
 $console->run();

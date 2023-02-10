@@ -1,23 +1,20 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\IntegrationTest\Initializer;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\IntegrationTest\Initializer\Options;
+namespace Fabiang\ExceptionGenerator\IntegrationTest\Initializer;
+
+use Fabiang\ExceptionGenerator\IntegrationTest\Initializer\Options;
 
 interface OptionsAwareInterface
 {
-
     /**
      * Set options object.
-     *
-     * @param Options $options
      */
-    public function setOptions(Options $options);
+    public function setOptions(Options $options): void;
 
     /**
      * Get options object.
-     *
-     * @return Options
      */
-    public function getOptions();
+    public function getOptions(): Options;
 }

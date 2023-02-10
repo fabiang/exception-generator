@@ -1,23 +1,15 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\FileLoopListener;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Event\FileEvent;
-use Burntromi\ExceptionGenerator\Resolver\NamespaceResolver;
+namespace Fabiang\ExceptionGenerator\FileLoopListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Resolver\NamespaceResolver;
 
 class PHPFileListener extends AbstractFileLoopListener implements FileLoopListenerInterface
 {
-    /**
-     *
-     * @var NamespaceResolver
-     */
-    protected $namespaceResolver;
-
-    /**
-     *
-     * @param NamespaceResolver $namespaceResolver
-     */
-    public function __construct(NamespaceResolver $namespaceResolver)
+    public function __construct(protected NamespaceResolver $namespaceResolver)
     {
         $this->namespaceResolver = $namespaceResolver;
     }
@@ -25,7 +17,7 @@ class PHPFileListener extends AbstractFileLoopListener implements FileLoopListen
     /**
      * {@inheritDoc}
      */
-    public function onFile(FileEvent $event)
+    public function onFile(FileEvent $event): void
     {
         if ($event->getExtension() === 'php') {
             $namespace = $this->namespaceResolver->resolve($event->getFile(), $event->getLoopedDirectories());

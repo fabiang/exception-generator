@@ -1,37 +1,22 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Listener;
+declare(strict_types=1);
 
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Burntromi\ExceptionGenerator\Event\CreateExceptionEvent;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+namespace Fabiang\ExceptionGenerator\Listener;
+
+use Fabiang\ExceptionGenerator\Event\CreateExceptionEvent;
 use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class CreateExceptionListener implements EventSubscriberInterface
 {
-    /**
-     * @var OutputInterface
-     */
-    protected $output;
+    protected OutputInterface $output;
+    protected InputInterface $input;
+    protected QuestionHelper $question;
 
-    /**
-     * @var InputInterface
-     */
-    protected $input;
-
-    /**
-     * @var QuestionHelper
-     */
-    protected $question;
-
-    /**
-     *
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Helper\QuestionHelper $question
-     */
     public function __construct(OutputInterface $output, InputInterface $input, QuestionHelper $question)
     {
         $this->output   = $output;
@@ -42,53 +27,45 @@ class CreateExceptionListener implements EventSubscriberInterface
     /**
      * {@inheritDoc}
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(
-            'creation.skipped'  => array('onSkippedCreation'),
-            'overwrite.all'     => array('onOverwriteAll'),
-            'skip.all'          => array('onSkipOverwriteAll'),
-            'write.file'        => array('onWriteFile'),
-            'overwrite.confirm' => array('onOverwriteConfirm'),
-        );
+        return [
+            'creation.skipped'  => ['onSkippedCreation'],
+            'overwrite.all'     => ['onOverwriteAll'],
+            'skip.all'          => ['onSkipOverwriteAll'],
+            'write.file'        => ['onWriteFile'],
+            'overwrite.confirm' => ['onOverwriteConfirm'],
+        ];
     }
 
     /**
      * File writing was skipped event.
-     *
-     * @param \Burntromi\ExceptionGenerator\Event\CreateExceptionEvent $event
      */
-    public function onSkippedCreation(CreateExceptionEvent $event)
+    public function onSkippedCreation(CreateExceptionEvent $event): void
     {
         $this->output->writeln('Skipped creating "' . $event->getFileName() . '"');
     }
 
     /**
      * Overwriting of all files event.
-     *
-     * @param \Burntromi\ExceptionGenerator\Event\CreateExceptionEvent $event
      */
-    public function onOverwriteAll()
+    public function onOverwriteAll(CreateExceptionEvent $event): void
     {
         $this->output->writeln('Overwriting all existing files!');
     }
 
     /**
      * Skip confirmation to overwrite existing files event.
-     *
-     * @param \Burntromi\ExceptionGenerator\Event\CreateExceptionEvent $event
      */
-    public function onSkipOverwriteAll()
+    public function onSkipOverwriteAll(CreateExceptionEvent $event): void
     {
         $this->output->writeln('Skipped overwriting all existing files.');
     }
 
     /**
      * Overwriting of a single file event.
-     *
-     * @param \Burntromi\ExceptionGenerator\Event\CreateExceptionEvent $event
      */
-    public function onWriteFile(CreateExceptionEvent $event)
+    public function onWriteFile(CreateExceptionEvent $event): void
     {
         $message = ' "' . $event->getFileName() . '"...';
         if ($event->fileExists()) {
@@ -102,14 +79,12 @@ class CreateExceptionListener implements EventSubscriberInterface
 
     /**
      * Event for asking the user of confirmation to overwrite a file
-     *
-     * @param \Burntromi\ExceptionGenerator\Event\CreateExceptionEvent $event
      */
-    public function onOverwriteConfirm(CreateExceptionEvent $event)
+    public function onOverwriteConfirm(CreateExceptionEvent $event): void
     {
         $question = new ChoiceQuestion(
             'File [' . $event->getFileName() . '] already exists, overwrite?',
-            array('y' => 'yes', 'n' => 'no', 'all' => 'all', 'nall' => 'nall'),
+            ['y' => 'yes', 'n' => 'no', 'all' => 'all', 'nall' => 'nall'],
             'n'
         );
 

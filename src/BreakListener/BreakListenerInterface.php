@@ -1,16 +1,16 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\BreakListener;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+namespace Fabiang\ExceptionGenerator\BreakListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 interface BreakListenerInterface extends EventSubscriberInterface
 {
     /**
      * Listener for file breaks.
-     *
-     * @param FileEvent $event
      */
-    public function onBreak(FileEvent $event);
+    public function onBreak(FileEvent $event): void;
 }

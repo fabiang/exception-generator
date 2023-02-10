@@ -1,23 +1,15 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\FileLoopListener;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Event\FileEvent;
-use Burntromi\ExceptionGenerator\Resolver\ComposerResolver;
+namespace Fabiang\ExceptionGenerator\FileLoopListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\Resolver\ComposerResolver;
 
 class ComposerJsonListener extends AbstractFileLoopListener implements FileLoopListenerInterface
 {
-    /**
-     *
-     * @var ComposerResolver
-     */
-    protected $composerResolver;
-
-    /**
-     *
-     * @param ComposerResolver $composerResolver
-     */
-    public function __construct(ComposerResolver $composerResolver)
+    public function __construct(protected ComposerResolver $composerResolver)
     {
         $this->composerResolver = $composerResolver;
     }
@@ -25,7 +17,7 @@ class ComposerJsonListener extends AbstractFileLoopListener implements FileLoopL
     /**
      * {@inheritDoc}
      */
-    public function onFile(FileEvent $event)
+    public function onFile(FileEvent $event): void
     {
         if ($event->getBasename() === 'composer.json') {
             $namespace = $this->composerResolver->resolve($event->getFile(), $event->getLoopedDirectories());

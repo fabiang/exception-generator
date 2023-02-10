@@ -1,8 +1,10 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\DirLoopListener;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+namespace Fabiang\ExceptionGenerator\DirLoopListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 interface DirLoopListenerInterface extends EventSubscriberInterface
@@ -11,8 +13,6 @@ interface DirLoopListenerInterface extends EventSubscriberInterface
      * File was found.
      *
      * Resolver listener must implement this interface.
-     *
-     * @param FileEvent $event
      */
-    public function onDir(FileEvent $event);
+    public function onDir(FileEvent $event): void;
 }

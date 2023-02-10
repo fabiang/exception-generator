@@ -1,27 +1,26 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Event;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
+namespace Fabiang\ExceptionGenerator\Event;
+
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\Event\CreateExceptionEvent
+ * @coversDefaultClass Fabiang\ExceptionGenerator\Event\CreateExceptionEvent
  */
 final class CreateExceptionEventTest extends TestCase
 {
-    /**
-     * @var CreateExceptionEvent
-     */
-    private $object;
+    private CreateExceptionEvent $object;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        vfsStream::setup('test', null, array('bar' => array('foo.php' => 'test content')));
+        vfsStream::setup('test', null, ['bar' => ['foo.php' => 'test content']]);
         $this->object = new CreateExceptionEvent(vfsStream::url('test/bar/foo.php'));
     }
 
@@ -29,27 +28,29 @@ final class CreateExceptionEventTest extends TestCase
      * @covers ::getFileName
      * @covers ::__construct
      */
-    public function testGetFileName()
+    public function testGetFileName(): void
     {
         $this->assertSame(vfsStream::url('test/bar/foo.php'), $this->object->getFileName());
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\CreateExceptionEvent::__construct
+     *
      * @covers ::getConfirm
      * @covers ::setConfirm
-     * @uses Burntromi\ExceptionGenerator\Event\CreateExceptionEvent::__construct
      */
-    public function testSetAndGetConfirm()
+    public function testSetAndGetConfirm(): void
     {
         $this->object->setConfirm('y');
         $this->assertSame('y', $this->object->getConfirm());
     }
 
     /**
+     * @uses Fabiang\ExceptionGenerator\Event\CreateExceptionEvent::__construct
+     *
      * @covers ::fileExists
-     * @uses Burntromi\ExceptionGenerator\Event\CreateExceptionEvent::__construct
      */
-    public function testFileExists()
+    public function testFileExists(): void
     {
         $this->assertTrue($this->object->fileExists(), 'File doesn\'t exist');
     }

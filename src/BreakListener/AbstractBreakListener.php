@@ -1,16 +1,18 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\BreakListener;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\BreakListener;
 
 abstract class AbstractBreakListener implements BreakListenerInterface
 {
     /**
      * {@inheritDoc}
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
-        return array(
-            'file.break' => array('onBreak')
-        );
+        return [
+            'file.break' => ['onBreak'],
+        ];
     }
 }

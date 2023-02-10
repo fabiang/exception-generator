@@ -1,15 +1,17 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\DirLoopListener;
+declare(strict_types=1);
 
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+namespace Fabiang\ExceptionGenerator\DirLoopListener;
+
+use Fabiang\ExceptionGenerator\Event\FileEvent;
 
 class ExceptionDirListener extends AbstractDirLoopListener implements DirLoopListenerInterface
 {
     /**
      * {@inheritDoc}
      */
-    public function onDir(FileEvent $event)
+    public function onDir(FileEvent $event): void
     {
         if ($event->getBasename() === 'Exception' && $event->isDir()) {
             $event->setParentExceptionDir();

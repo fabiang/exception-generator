@@ -1,16 +1,21 @@
 <?= '<?php' ?>
 
+declare(strict_types=1);
+
 namespace <?= $namespace ?>\Exception;
 
-<?php if (isset($use)): ?>
+<?php if (isset($use)) : ?>
 use <?= $use ?> as BaseExceptionInterface;
+
+<?php else : ?>
+use Throwable;
 
 <?php endif ?>
 /**
  * Generated at <?= $created->format('r') ?> by <?= $user ?>
 
  */
-interface ExceptionInterface<?php if (isset($use)): ?> extends BaseExceptionInterface<?php endif; ?>
+interface ExceptionInterface extends <?php if (isset($use)) : ?>BaseExceptionInterface<?php else : ?>Throwable<?php endif; ?>
 
 {
 }

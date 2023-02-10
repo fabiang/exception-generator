@@ -1,27 +1,28 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Resolver;
+declare(strict_types=1);
 
-use PHPUnit_Framework_TestCase as TestCase;
+namespace Fabiang\ExceptionGenerator\Resolver;
+
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
+
+use function file_put_contents;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\Resolver\ComposerResolver
+ * @coversDefaultClass Fabiang\ExceptionGenerator\Resolver\ComposerResolver
  */
 final class ComposerResolverTest extends TestCase
 {
-    /**
-     * @var ComposerResolver
-     */
-    private $object;
+    private ComposerResolver $object;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->object = new ComposerResolver;
+        $this->object = new ComposerResolver();
         vfsStream::setup('src');
     }
 
@@ -29,79 +30,76 @@ final class ComposerResolverTest extends TestCase
      * @covers ::resolve
      * @dataProvider provideTestComposerJson
      */
-    public function testResolve($source, $namespace)
+    public function testResolve(string $source, string|false $namespace): void
     {
         $path = vfsStream::url('src/composer.json');
         file_put_contents($path, $source);
-        $this->assertSame($namespace, $this->object->resolve($path, array()));
+        $this->assertSame($namespace, $this->object->resolve($path, []));
     }
 
     /**
      * @covers ::resolve
      */
-    public function testResolveWithLoopedDirecotries()
+    public function testResolveWithLoopedDirectories(): void
     {
         $path = vfsStream::url('src/composer.json');
         file_put_contents(
             $path,
-            '{"autoload":{"psr-4":{"Burntromi\\\\ExceptionGenerator\\\\":"src/"}}}'
+            '{"autoload":{"psr-4":{"Fabiang\\\\ExceptionGenerator\\\\":"src/"}}}'
         );
         $this->assertSame(
-            "Burntromi\ExceptionGenerator\Foo\Bar",
-            $this->object->resolve($path, array('Bar', 'Foo', 'ExceptionGenerator', 'Burntromi', 'src'))
+            "Fabiang\ExceptionGenerator\Foo\Bar",
+            $this->object->resolve($path, ['Bar', 'Foo', 'ExceptionGenerator', 'Fabiang', 'src'])
         );
     }
 
-    /**
-     * @return array
-     */
-    public function provideTestComposerJson()
+    public static function provideTestComposerJson(): array
     {
-        return array(
-            array(
-                'source'    => '{"autoload":{"psr-4":{"Burntromi\\\\ExceptionGenerator1\\\\":"src/"}}}',
-                'namespace' => "Burntromi\ExceptionGenerator1",
-            ),
-            array(
-                'source'    => '{"autoload":{"psr-0":{"Burntromi\\\\ExceptionGenerator2\\\\":"src/"}}}',
-                'namespace' => "Burntromi\ExceptionGenerator2",
-            ),
-            array(
-                'source'    => '{"autoload":{"psr-1":{"Burntromi\\\\ExceptionGenerator3\\\\":"src/"}}}',
+        return [
+            [
+                'source'    => '{"autoload":{"psr-4":{"Fabiang\\\\ExceptionGenerator1\\\\":"src/"}}}',
+                'namespace' => "Fabiang\ExceptionGenerator1",
+            ],
+            [
+                'source'    => '{"autoload":{"psr-0":{"Fabiang\\\\ExceptionGenerator2\\\\":"src/"}}}',
+                'namespace' => "Fabiang\ExceptionGenerator2",
+            ],
+            [
+                'source'    => '{"autoload":{"psr-1":{"Fabiang\\\\ExceptionGenerator3\\\\":"src/"}}}',
                 'namespace' => false,
-            ),
-            array(
-                'source'    => '{"autoload":{"psr-2":{"Burntromi\\\\ExceptionGenerator4\\\\":"src/"}}}',
+            ],
+            [
+                'source'    => '{"autoload":{"psr-2":{"Fabiang\\\\ExceptionGenerator4\\\\":"src/"}}}',
                 'namespace' => false,
-            ),
-            array(
-                'source'    => '{"autoloat":{"psr-2":{"Burntromi\\\\ExceptionGenerator4\\\\":"src/"}}}',
+            ],
+            [
+                'source'    => '{"autoloat":{"psr-2":{"Fabiang\\\\ExceptionGenerator4\\\\":"src/"}}}',
                 'namespace' => false,
-            ),
-            array(
-                'source'    => '"autoloat":{"psr-2":{"Burntromi\\\\ExceptionGenerator4\\\\":"src/"}}',
+            ],
+            [
+                'source'    => '"autoloat":{"psr-2":{"Fabiang\\\\ExceptionGenerator4\\\\":"src/"}}',
                 'namespace' => false,
-            ),
-            array(
-                'source'    => '{"autoload":{"psr-4":{"Burntromi\ExceptionGenerator1\":"src/"}}}',
+            ],
+            [
+                'source'    => '{"autoload":{"psr-4":{"Fabiang\ExceptionGenerator1\":"src/"}}}',
                 'namespace' => false,
-            ),
-            array(
+            ],
+            [
                 'source'    => '',
                 'namespace' => false,
-            ),
-            array(
-                'source'    => '{"autoload": {"psr-4": {"Burntromi\\\\ExceptionGenerator1\\\\": "src/",
-                                                          "Burntromi\\\\ExceptionGenerator2\\\\": "src/"
+            ],
+            [
+                'source'    => '{"autoload": {"psr-4": {"Fabiang\\\\ExceptionGenerator1\\\\": "src/",
+                                                          "Fabiang\\\\ExceptionGenerator2\\\\": "src/"
                                                           }}}',
-                'namespace' => "Burntromi\ExceptionGenerator1",
-            ),
-            array(
-                'source'    => '{"autoload": {"psr-4": {"Burntromi\\ExceptionGenerator1\\": "src/",
-                                                          "Burntromi\\\\ExceptionGenerator2\\\\": "src/"
+                'namespace' => "Fabiang\ExceptionGenerator1",
+            ],
+            [
+                'source'    => '{"autoload": {"psr-4": {"Fabiang\\ExceptionGenerator1\\": "src/",
+                                                          "Fabiang\\\\ExceptionGenerator2\\\\": "src/"
                                                           }}}',
                 'namespace' => false,
-            ),
-        );
+            ],
+        ];
     }
 }

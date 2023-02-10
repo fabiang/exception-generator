@@ -1,72 +1,54 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Event;
+declare(strict_types=1);
 
-use Symfony\Component\EventDispatcher\Event;
+namespace Fabiang\ExceptionGenerator\Event;
+
 use DirectoryIterator;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class FileEvent extends Event
 {
     /**
      * Namespace.
-     *
-     * @var string
      */
-    protected $namespace = null;
+    protected ?string $namespace = null;
 
     /**
      * ParentExceptionDir.
-     *
-     * @var string
      */
-    protected $parentExceptionDir = null;
+    protected ?string $parentExceptionDir = null;
 
     /**
      * Full file path.
-     *
-     * @var string
      */
-    protected $file;
+    protected string $file;
 
     /**
      * File extension.
-     *
-     * @var string
      */
-    protected $extension;
+    protected string $extension;
 
     /**
      * basename of item.
-     *
-     * @var string
      */
-    protected $basename;
+    protected string $basename;
 
     /**
      * dirname of item.
-     *
-     * @var string
      */
-    protected $dirname;
+    protected string $dirname;
 
     /**
      * Item is an directory.
-     *
-     * @var bool
      */
-    protected $isDir = false;
+    protected bool $isDir = false;
 
     /**
      * Cache of looped directories.
-     *
-     * @var array
      */
-    protected $loopedDirectories = array();
+    protected array $loopedDirectories = [];
 
-    /**
-     *
-     * @param DirectoryIterator $file
-     */
     public function __construct(DirectoryIterator $file)
     {
         $this->file      = $file->getPathname();
@@ -78,88 +60,72 @@ class FileEvent extends Event
 
     /**
      * Get found parentExceptionDirs
-     *
-     * @return string
      */
-    public function getParentExceptionDir()
+    public function getParentExceptionDir(): ?string
     {
         return $this->parentExceptionDir;
     }
 
     /**
      * Set found parentExceptionDirs.
-    */
-    public function setParentExceptionDir()
+     */
+    public function setParentExceptionDir(): void
     {
         $this->parentExceptionDir = $this->dirname . '/Exception';
     }
 
     /**
      * Get found namespace
-     *
-     * @return string
      */
-    public function getNamespace()
+    public function getNamespace(): ?string
     {
         return $this->namespace;
     }
 
     /**
      * Set found namespace.
-     *
-     * @param string $namespace
      */
-    public function setNamespace($namespace)
+    public function setNamespace(?string $namespace): void
     {
         $this->namespace = $namespace;
     }
 
     /**
      * Get full filename.
-     *
-     * @return string
      */
-    public function getFile()
+    public function getFile(): string
     {
         return $this->file;
     }
 
     /**
      * Get file extension.
-     *
-     * @return string
      */
-    public function getExtension()
+    public function getExtension(): string
     {
         return $this->extension;
     }
 
     /**
      * Get basename of item.
-     *
-     * @return string
      */
-    public function getBasename()
+    public function getBasename(): string
     {
         return $this->basename;
     }
 
     /**
      * Get dirname of item.
-     *
-     * @return string
      */
-    public function getDirname()
+    public function getDirname(): string
     {
         return $this->dirname;
     }
 
     /**
      * Is item an directory.
-     *
-     * @return bool
      */
-    public function isDir()
+    public function isDir(): bool
     {
         return $this->isDir;
     }
@@ -167,31 +133,24 @@ class FileEvent extends Event
     /**
      * Compatiblity method for PHP versions not
      * supporting DirectoryIterator::getExtension
-     *
-     * @param DirectoryIterator $file
-     * @return string
      */
-    private function getFileExtension(DirectoryIterator $file)
+    private function getFileExtension(DirectoryIterator $file): string
     {
         return $file->getExtension();
     }
 
     /**
      * Get looped directories while iterating up path.
-     *
-     * @return array
      */
-    public function getLoopedDirectories()
+    public function getLoopedDirectories(): array
     {
         return $this->loopedDirectories;
     }
 
     /**
      * Set looped directories while iterating up path.
-     *
-     * @param array $loopedDirectories
      */
-    public function setLoopedDirectories(array $loopedDirectories)
+    public function setLoopedDirectories(array $loopedDirectories): void
     {
         $this->loopedDirectories = $loopedDirectories;
     }

@@ -1,29 +1,43 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Resolver;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\Resolver;
+
+use function array_diff;
+use function array_reverse;
+use function count;
+use function current;
+use function explode;
+use function file_get_contents;
+use function implode;
+use function json_decode;
+use function key;
+use function ltrim;
+use function preg_replace;
+use function rtrim;
 
 class ComposerResolver implements ResolverInterface
 {
     /**
      * {@inheritDoc}
      */
-    public function resolve($path, array $loopedDirectories)
+    public function resolve(string $path, array $loopedDirectories): string|bool
     {
         $namespace = false;
         $jsonFile  = file_get_contents($path);
         $json      = json_decode($jsonFile, true);
 
         if (null !== $json && isset($json['autoload'])) {
-
             $autoload = $json['autoload'];
             if (isset($autoload['psr-4'])) {
                 $namespaces = $autoload['psr-4'];
-                $namespace = key($namespaces);
-                $path = current($namespaces);
+                $namespace  = key($namespaces);
+                $path       = current($namespaces);
             } elseif (isset($autoload['psr-0'])) {
                 $namespaces = $autoload['psr-0'];
-                $namespace = key($namespaces);
-                $path = current($namespaces);
+                $namespace  = key($namespaces);
+                $path       = current($namespaces);
             }
 
             if (false !== $namespace) {

@@ -1,69 +1,50 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Event;
+declare(strict_types=1);
 
-use Symfony\Component\EventDispatcher\Event;
+namespace Fabiang\ExceptionGenerator\Event;
+
+use Symfony\Contracts\EventDispatcher\Event;
+
+use function is_file;
 
 class CreateExceptionEvent extends Event
 {
-    /**
-     * @var string
-     */
-    protected $fileName;
+    protected string $fileName;
+    protected bool $fileExists = false;
+    protected ?string $confirm = null;
 
-    /**
-     * @var bool
-     */
-    protected $fileExists;
-
-    /**
-     * @var string
-     */
-    protected $confirm;
-
-    /**
-     * @param string $fileName
-     */
-    public function __construct($fileName)
+    public function __construct(string $fileName)
     {
         $this->fileName   = $fileName;
         $this->fileExists = is_file($fileName);
     }
 
-    /**
-     * @return string
-     */
-    public function getFileName()
+    public function getFileName(): string
     {
         return $this->fileName;
     }
 
     /**
      * Get confirmation value.
-     *
-     * @return string
      */
-    public function getConfirm()
+    public function getConfirm(): ?string
     {
         return $this->confirm;
     }
 
     /**
      * Set confirmation value.
-     *
-     * @param string $confirm
      */
-    public function setConfirm($confirm)
+    public function setConfirm(?string $confirm): void
     {
         $this->confirm = $confirm;
     }
 
     /**
      * Does file exist.
-     *
-     * @return bool
      */
-    public function fileExists()
+    public function fileExists(): bool
     {
         return $this->fileExists;
     }

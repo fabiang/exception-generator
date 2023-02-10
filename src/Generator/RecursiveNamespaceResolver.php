@@ -1,30 +1,26 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Generator;
+declare(strict_types=1);
 
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Burntromi\ExceptionGenerator\Resolver\NamespaceResolver;
-use Burntromi\ExceptionGenerator\Resolver\ComposerResolver;
+namespace Fabiang\ExceptionGenerator\Generator;
+
 use DirectoryIterator;
-use Burntromi\ExceptionGenerator\FileLoopListener\PHPFileListener;
-use Burntromi\ExceptionGenerator\FileLoopListener\ComposerJsonListener;
-use Burntromi\ExceptionGenerator\BreakListener\GitDirectoryListener;
-use Burntromi\ExceptionGenerator\BreakListener\RootDirectoryListener;
-use Burntromi\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\BreakListener\GitDirectoryListener;
+use Fabiang\ExceptionGenerator\BreakListener\RootDirectoryListener;
+use Fabiang\ExceptionGenerator\Event\FileEvent;
+use Fabiang\ExceptionGenerator\FileLoopListener\ComposerJsonListener;
+use Fabiang\ExceptionGenerator\FileLoopListener\PHPFileListener;
+use Fabiang\ExceptionGenerator\Resolver\ComposerResolver;
+use Fabiang\ExceptionGenerator\Resolver\NamespaceResolver;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+use function basename;
+use function count;
+use function dirname;
 
 class RecursiveNamespaceResolver
 {
-    /**
-     *
-     * @var EventDispatcherInterface
-     */
-    protected $eventDispatcher;
-
-    /**
-     *
-     * @param EventDispatcherInterface $eventDispatcher
-     */
-    public function __construct(EventDispatcherInterface $eventDispatcher)
+    public function __construct(protected EventDispatcher $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->registerDefaultListeners();
@@ -33,34 +29,32 @@ class RecursiveNamespaceResolver
     /**
      * Register default listeners
      */
-    private function registerDefaultListeners()
+    private function registerDefaultListeners(): void
     {
         $this->eventDispatcher->addSubscriber(new PHPFileListener(new NamespaceResolver()));
-        $this->eventDispatcher->addSubscriber(new ComposerJsonListener(new ComposerResolver));
+        $this->eventDispatcher->addSubscriber(new ComposerJsonListener(new ComposerResolver()));
         $this->eventDispatcher->addSubscriber(new GitDirectoryListener());
         $this->eventDispatcher->addSubscriber(new RootDirectoryListener());
     }
 
     /**
      * Run application.
-     *
-     * @param string $path working path
      */
-    public function resolveNamespace($path)
+    public function resolveNamespace(string $path): ?string
     {
         $namespace       = null;
         $eventDispatcher = $this->eventDispatcher;
 
         // loop as long a break listener doesn't stop propagation or we have empty directories
         // we iterate through directories up
-        $loopedPaths = array();
+        $loopedPaths = [];
         do {
             $directory = $this->getDirectoryContents($path);
             // loop over files/directories and check if a listener can find a namespace
             foreach ($directory as $item) {
                 $namespaceEvent = new FileEvent($item);
                 $namespaceEvent->setLoopedDirectories($loopedPaths);
-                $eventDispatcher->dispatch('file.loop', $namespaceEvent);
+                $eventDispatcher->dispatch($namespaceEvent, 'file.loop');
 
                 // if a listener has found a namespace and because
                 // of its priority is want to cancel we break early
@@ -83,7 +77,7 @@ class RecursiveNamespaceResolver
             // check for listeners that check if the path iteration loop should be stopped
             foreach ($directory as $item) {
                 $breakEvent = new FileEvent($item);
-                $eventDispatcher->dispatch('file.break', $breakEvent);
+                $eventDispatcher->dispatch($breakEvent, 'file.break');
                 if (false !== $breakEvent->isPropagationStopped()) {
                     break 2;
                 }
@@ -91,33 +85,29 @@ class RecursiveNamespaceResolver
             $loopedPaths[] = basename($path);
             $path          = dirname($path) !== 'vfs:' ? dirname($path) : 'vfs://';
             //break early cuz DirectoryIterator can't handle vfs root folder
-        } while ((0 === count($directory) || !$breakEvent->isPropagationStopped()) && $path !== 'vfs://');
+        } while ((0 === count($directory) || ! $breakEvent->isPropagationStopped()) && $path !== 'vfs://');
+
         return $namespace;
     }
 
     /**
      * Get directory contents without dot files.
      *
-     * @param string $path
-     * @return DirectoryIterator[]
+     * @psalm-return array<int, DirectoryIterator>
      */
-    private function getDirectoryContents($path)
+    private function getDirectoryContents(string $path): iterable
     {
         $directory = new DirectoryIterator($path);
-        $items     = array();
+        $items     = [];
         foreach ($directory as $item) {
-            if (!$item->isDot()) {
+            if (! $item->isDot()) {
                 $items[] = clone $item;
             }
         }
         return $items;
     }
 
-    /**
-     *
-     * @return EventDispatcherInterface
-     */
-    public function getEventDispatcher()
+    public function getEventDispatcher(): EventDispatcher
     {
         return $this->eventDispatcher;
     }

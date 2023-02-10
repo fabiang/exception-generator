@@ -1,36 +1,35 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\TemplateResolver;
+declare(strict_types=1);
 
+namespace Fabiang\ExceptionGenerator\TemplateResolver;
+
+use Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit_Framework_TestCase as TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+
+use function file_put_contents;
+use function realpath;
 
 /**
- * @coversDefaultClass Burntromi\ExceptionGenerator\TemplateResolver\TemplateResolver
+ * @coversDefaultClass Fabiang\ExceptionGenerator\TemplateResolver\TemplateResolver
  */
 final class TemplateResolverTest extends TestCase
 {
-    /**
-     * @var TemplateResolver
-     */
-    private $object;
-
-    /**
-     *
-     * @var PHPUnit_Framework_MockObject_MockObject
-     */
-    private $templatePathMatcher;
+    private TemplateResolver $object;
+    private MockObject $templatePathMatcher;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
-        vfsStream::setup('root', null, array('home' => array()));
+        vfsStream::setup('root', null, ['home' => []]);
 
         $this->templatePathMatcher = $this->createMock(
-            'Burntromi\ExceptionGenerator\TemplateResolver\TemplatePathMatcher'
+            TemplatePathMatcher::class
         );
 
         $this->object = new TemplateResolver(vfsStream::url('root/home'), $this->templatePathMatcher);
@@ -41,7 +40,7 @@ final class TemplateResolverTest extends TestCase
      * @covers ::getTemplatePath
      * @covers ::__construct
      */
-    public function testResolveTemplateExistsInGivenPath()
+    public function testResolveTemplateExistsInGivenPath(): void
     {
         file_put_contents(vfsStream::url('root/home/exception.phtml'), '');
         $this->assertSame(vfsStream::url('root/home/exception.phtml'), $this->object->resolve('exception.phtml'));
@@ -52,7 +51,7 @@ final class TemplateResolverTest extends TestCase
      * @covers ::getTemplatePath
      * @covers ::__construct
      */
-    public function testResolveTemplateMatcherReturnsPath()
+    public function testResolveTemplateMatcherReturnsPath(): void
     {
         $this->templatePathMatcher->expects($this->once())
             ->method('match')
@@ -66,7 +65,7 @@ final class TemplateResolverTest extends TestCase
      * @covers ::getTemplatePath
      * @covers ::__construct
      */
-    public function testResolveReturnsDefaultPath()
+    public function testResolveReturnsDefaultPath(): void
     {
         $this->templatePathMatcher->expects($this->once())
             ->method('match')

@@ -1,15 +1,13 @@
 <?php
 
-namespace Burntromi\ExceptionGenerator\Resolver;
+declare(strict_types=1);
+
+namespace Fabiang\ExceptionGenerator\Resolver;
 
 interface ResolverInterface
 {
     /**
      * Resolve namespace from file.
-     *
-     * @param string $path
-     * @param array  $loopedDirectories
-     * @return string|bool
      */
-    public function resolve($path, array $loopedDirectories);
+    public function resolve(string $path, array $loopedDirectories): string|bool;
 }
