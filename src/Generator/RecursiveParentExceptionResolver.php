@@ -41,7 +41,7 @@ class RecursiveParentExceptionResolver
     /**
      * Returns an array containing arrays with parent exception folder and its namespace
      */
-    public function resolveExceptionDirs(string $path): array
+    public function resolveExceptionDirs(string $path): ?array
     {
         $exceptionDirArray = null;
         $eventDispatcher   = $this->eventDispatcher;

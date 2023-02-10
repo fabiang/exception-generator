@@ -16,7 +16,7 @@ final class Application extends ConsoleApplication
     /**
      * Home directory.
      */
-    protected string $home;
+    protected ?string $home = null;
 
     /**
      * {@inheritDoc}
@@ -49,10 +49,8 @@ final class Application extends ConsoleApplication
 
     /**
      * Get path to home directory.
-     *
-     * @return string
      */
-    public function getHome()
+    public function getHome(): string
     {
         if (null === $this->home) {
             $this->home = getenv('HOME');
@@ -63,11 +61,9 @@ final class Application extends ConsoleApplication
 
     /**
      * Set path to home directory.
-     *
-     * @param string $home
      */
-    public function setHome($home)
+    public function setHome(string $home): void
     {
-        $this->home = (string) $home;
+        $this->home = $home;
     }
 }
