@@ -12,6 +12,8 @@ To save time and reduce errors, this tool was made!
 [![Continuous Integration](https://github.com/fabiang/exception-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/fabiang/exception-generator/actions/workflows/ci.yml)
 [![Latest Stable Version](https://poser.pugx.org/fabiang/exception-generator/version)](https://packagist.org/packages/fabiang/exception-generator)
 [![License](https://poser.pugx.org/fabiang/exception-generator/license)](https://packagist.org/packages/fabiang/exception-generator)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/fabiang/exception-generator/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/fabiang/exception-generator/?branch=develop)
+[![Code Coverage](https://scrutinizer-ci.com/g/fabiang/exception-generator/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/fabiang/exception-generator/?branch=develop)
 
 ## Installation/Usage
 
