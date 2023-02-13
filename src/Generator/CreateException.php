@@ -32,13 +32,13 @@ class CreateException
     ) {
         $this->templateRenderer = $templateRenderer;
         $this->eventDispatcher  = $eventDispatcher;
-        $this->overwrite        = (bool) $overwrite;
+        $this->overwrite        = $overwrite;
     }
 
     /**
      * creates the exception classes and the exception folder
      */
-    public function create(string $namespace, string $path, ?string $usePath = null)
+    public function create(string $namespace, string $path, ?string $usePath = null): void
     {
         $exceptionNames = ExceptionClassNames::getExceptionClassNames();
 
@@ -95,8 +95,9 @@ class CreateException
         if ($this->overwrite || ! $fileExists) {
             return true;
         }
+
         // if user has chosen to skip overwriting all existing files, then return early
-        if ($this->skipAll && $fileExists) {
+        if ($this->skipAll) {
             return false;
         }
 

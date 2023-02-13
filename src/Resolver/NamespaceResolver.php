@@ -32,7 +32,7 @@ class NamespaceResolver implements ResolverInterface
     private const T_NAME_FULLY_QUALIFIED = T_NAME_FULLY_QUALIFIED;
     private const T_NAME_QUALIFIED       = T_NAME_QUALIFIED;
 
-    public function resolve(string $path, array $loopedDirectories): string|bool
+    public function resolve(string $path, array $loopedDirectories): string|false
     {
         if (! is_readable($path)) {
             throw new RuntimeException('PHP file "' . $path . '" isn\'t readable');
@@ -40,6 +40,7 @@ class NamespaceResolver implements ResolverInterface
 
         $namespace = false;
         $tokens    = token_get_all(file_get_contents($path));
+        $type      = null;
 
         foreach ($tokens as $token) {
             if (is_array($token)) {

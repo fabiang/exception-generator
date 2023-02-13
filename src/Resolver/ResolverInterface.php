@@ -9,5 +9,5 @@ interface ResolverInterface
     /**
      * Resolve namespace from file.
      */
-    public function resolve(string $path, array $loopedDirectories): string|bool;
+    public function resolve(string $path, array $loopedDirectories): string|false;
 }

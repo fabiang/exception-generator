@@ -178,12 +178,6 @@ class ExceptionGeneratorCommandTest extends TestCase
         )
             ->shouldBeCalled();
 
-        $output->writeln(
-            'BaseExceptionPath: not found/used',
-            OutputInterface::VERBOSITY_VERY_VERBOSE
-        )
-            ->shouldBeCalled();
-
         $output->writeln('Writing "vfs://cwd/src/Parent/Exception/BadMethodCallException.php"...')->shouldBeCalled();
         $output->writeln('Writing "vfs://cwd/src/Parent/Exception/DomainException.php"...')->shouldBeCalled();
         $output->writeln('Writing "vfs://cwd/src/Parent/Exception/InvalidArgumentException.php"...')->shouldBeCalled();

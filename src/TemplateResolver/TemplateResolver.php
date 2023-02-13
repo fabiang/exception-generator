@@ -13,7 +13,7 @@ class TemplateResolver
     /**
      * Path to template.
      */
-    protected ?string $templatePath;
+    protected string $templatePath;
 
     /**
      * TemplatePathMatcher instance.
@@ -23,9 +23,9 @@ class TemplateResolver
     /**
      * transforms received path to a valid realpath
      */
-    public function __construct(?string $templatePath, TemplatePathMatcher $templatePathMatcher)
+    public function __construct(string $templatePath, TemplatePathMatcher $templatePathMatcher)
     {
-        $this->templatePath        = rtrim($templatePath ?? '', '/');
+        $this->templatePath        = rtrim($templatePath, '/');
         $this->templatePathMatcher = $templatePathMatcher;
     }
 

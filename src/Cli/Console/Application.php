@@ -50,10 +50,10 @@ class Application extends ConsoleApplication
     /**
      * Get path to home directory.
      */
-    public function getHome(): string
+    public function getHome(): ?string
     {
         if (null === $this->home) {
-            $this->home = getenv('HOME');
+            $this->home = getenv('HOME') ?: null;
         }
 
         return $this->home;

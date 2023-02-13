@@ -40,7 +40,7 @@ class TemplatePathMatcher
      *
      * @throws RuntimeException
      */
-    public function match(string $templateName): bool|string
+    public function match(string $templateName): false|string
     {
         if (! is_readable($this->configPath)) {
             return false;
@@ -57,7 +57,7 @@ class TemplatePathMatcher
     /**
      * trys to get the most matching path or global from config
      */
-    protected function getPaths(array $configData, string $templateName): bool|string
+    protected function getPaths(array $configData, string $templateName): false|string
     {
         if (! isset($configData['templatepath']) || ! is_array($configData['templatepath'])) {
             return false;
@@ -68,7 +68,8 @@ class TemplatePathMatcher
         if (isset($templatePath['projects']) && is_array($templatePath['projects'])) {
             $filteredProjects = $this->filterMatchingPaths($templatePath['projects']);
 
-            if (false !== ($matchingPath = $this->getMostRelatedPath($filteredProjects, $templateName))) {
+            $matchingPath = $this->getMostRelatedPath($filteredProjects, $templateName);
+            if (false !== $matchingPath) {
                 return $matchingPath;
             }
         }
@@ -102,7 +103,7 @@ class TemplatePathMatcher
     /**
      * trys to get the most related path where template was found
      */
-    protected function getMostRelatedPath(array $filteredProjects, string $templateName): bool|string
+    protected function getMostRelatedPath(array $filteredProjects, string $templateName): false|string
     {
         uksort($filteredProjects, function ($a, $b) {
             $strlenA = strlen($a);

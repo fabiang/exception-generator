@@ -22,7 +22,7 @@ class ComposerResolver implements ResolverInterface
     /**
      * {@inheritDoc}
      */
-    public function resolve(string $path, array $loopedDirectories): string|bool
+    public function resolve(string $path, array $loopedDirectories): string|false
     {
         $namespace = false;
         $jsonFile  = file_get_contents($path);

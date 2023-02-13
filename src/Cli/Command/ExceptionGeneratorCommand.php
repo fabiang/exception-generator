@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fabiang\ExceptionGenerator\Cli\Command;
 
+use Fabiang\ExceptionGenerator\Cli\Console\Application;
 use Fabiang\ExceptionGenerator\Generator\CreateException;
 use Fabiang\ExceptionGenerator\Generator\RecursiveNamespaceResolver;
 use Fabiang\ExceptionGenerator\Generator\RecursiveParentExceptionResolver;
@@ -23,6 +24,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use function array_reverse;
 use function getcwd;
 use function is_array;
+use function is_string;
 use function realpath;
 use function substr;
 
@@ -71,6 +73,10 @@ class ExceptionGeneratorCommand extends Command
             $path = getcwd();
         }
 
+        if (! is_string($path)) {
+            $path = '';
+        }
+
         /** @var QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
 
@@ -78,10 +84,14 @@ class ExceptionGeneratorCommand extends Command
         $eventDispatcher->addSubscriber(new CreateExceptionListener($output, $input, $questionHelper));
         $namespaceResolver = new RecursiveNamespaceResolver($eventDispatcher);
 
-        $namespace           = $namespaceResolver->resolveNamespace($path);
-        $templatePathMatcher = new TemplatePathMatcher($path, $this->getApplication()->getHome());
+        $namespace = $namespaceResolver->resolveNamespace($path);
 
-        $templatePath     = $this->realpath($input->getOption('template-path')) ?: null;
+        /** @var Application $application */
+        $application = $this->getApplication();
+
+        $templatePathMatcher = new TemplatePathMatcher($path, $application->getHome() ?? '');
+
+        $templatePath     = $this->realpath($input->getOption('template-path')) ?: '';
         $templateResolver = new TemplateResolver($templatePath, $templatePathMatcher);
 
         $exceptionTemplate = $templateResolver->resolve('exception.phtml');
@@ -109,37 +119,30 @@ class ExceptionGeneratorCommand extends Command
                     $prevParentNamespace      = $parentExceptionNamespace;
                     $parentExceptionNamespace = $namespaceResolver->resolveNamespace($parentExceptionDir);
 
-                    $output->writeln(
-                        'BaseExceptionPath: "' . $parentExceptionDir . '"',
-                        OutputInterface::VERBOSITY_VERY_VERBOSE
-                    );
-                    $output->writeln(
-                        'BaseExceptionNamespace: "' . $parentExceptionNamespace . '"',
-                        OutputInterface::VERBOSITY_VERY_VERBOSE
-                    );
+                    if ($parentExceptionNamespace !== null) {
+                        $output->writeln(
+                            'BaseExceptionPath: "' . $parentExceptionDir . '"',
+                            OutputInterface::VERBOSITY_VERY_VERBOSE
+                        );
+                        $output->writeln(
+                            'BaseExceptionNamespace: "' . $parentExceptionNamespace . '"',
+                            OutputInterface::VERBOSITY_VERY_VERBOSE
+                        );
 
-                    $parentExceptionCreator = new CreateException(
-                        $eventDispatcher,
-                        $templateRenderer,
-                        false,
-                        $output,
-                        $input
-                    );
+                        $parentExceptionCreator = new CreateException(
+                            $eventDispatcher,
+                            $templateRenderer,
+                            false
+                        );
 
-                    $parentExceptionCreator->create(
-                        $parentExceptionNamespace,
-                        $parentExceptionDir,
-                        $prevParentNamespace
-                    );
+                        $parentExceptionCreator->create(
+                            $parentExceptionNamespace,
+                            $parentExceptionDir,
+                            $prevParentNamespace
+                        );
+                    }
                 }
             }
-        }
-
-        if (
-            $parentExceptionNamespace && false === $useParents ||
-            ($parentExceptionNamespace && false !== $useParents)
-        ) {
-            $output->writeln('BaseExceptionPath: not found/used', OutputInterface::VERBOSITY_VERY_VERBOSE);
         }
 
         $namespaceQuestion = new Question("Is this the correct namespace: [$namespace]?", $namespace);
@@ -149,9 +152,7 @@ class ExceptionGeneratorCommand extends Command
         $exceptionCreator = new CreateException(
             $eventDispatcher,
             $templateRenderer,
-            $input->getOption('overwrite'),
-            $output,
-            $input
+            $input->getOption('overwrite')
         );
 
         $exceptionCreator->create($inputNamespace, $path . '/Exception', $parentExceptionNamespace);
@@ -162,7 +163,7 @@ class ExceptionGeneratorCommand extends Command
     /**
      * Realpath.
      */
-    private function realpath(?string $path): string|bool
+    private function realpath(?string $path): string|false
     {
         if (null === $path) {
             return '';

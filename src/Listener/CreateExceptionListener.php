@@ -49,7 +49,7 @@ class CreateExceptionListener implements EventSubscriberInterface
     /**
      * Overwriting of all files event.
      */
-    public function onOverwriteAll(CreateExceptionEvent $event): void
+    public function onOverwriteAll(): void
     {
         $this->output->writeln('Overwriting all existing files!');
     }
@@ -57,7 +57,7 @@ class CreateExceptionListener implements EventSubscriberInterface
     /**
      * Skip confirmation to overwrite existing files event.
      */
-    public function onSkipOverwriteAll(CreateExceptionEvent $event): void
+    public function onSkipOverwriteAll(): void
     {
         $this->output->writeln('Skipped overwriting all existing files.');
     }

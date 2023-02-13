@@ -78,14 +78,14 @@ class RecursiveNamespaceResolver
             foreach ($directory as $item) {
                 $breakEvent = new FileEvent($item);
                 $eventDispatcher->dispatch($breakEvent, 'file.break');
-                if (false !== $breakEvent->isPropagationStopped()) {
+                if (true === $breakEvent->isPropagationStopped()) {
                     break 2;
                 }
             }
             $loopedPaths[] = basename($path);
             $path          = dirname($path) !== 'vfs:' ? dirname($path) : 'vfs://';
             //break early cuz DirectoryIterator can't handle vfs root folder
-        } while ((0 === count($directory) || ! $breakEvent->isPropagationStopped()) && $path !== 'vfs://');
+        } while (0 === count($directory) || $path !== 'vfs://');
 
         return $namespace;
     }

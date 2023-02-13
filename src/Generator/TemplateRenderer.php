@@ -17,13 +17,15 @@ use function str_replace;
 
 class TemplateRenderer
 {
-    public function __construct(protected ?PhpRenderer $renderer = null)
+    protected PhpRenderer $renderer;
+
+    public function __construct(?PhpRenderer $renderer = null)
     {
-        $this->renderer = $renderer;
         if (null === $renderer) {
-            $this->renderer = new PhpRenderer();
+            $renderer = new PhpRenderer();
         }
 
+        $this->renderer = $renderer;
         $this->renderer->setResolver(new TemplateMapResolver());
     }
 
@@ -67,7 +69,7 @@ class TemplateRenderer
         return $this->renderer->render($model);
     }
 
-    private function getUsername(): string
+    private function getUsername(): ?string
     {
         if (defined('USER')) {
             return USER;

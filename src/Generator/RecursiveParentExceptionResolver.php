@@ -20,11 +20,6 @@ class RecursiveParentExceptionResolver
     private const VFSSTREAM_PREFIX = 'vfs:';
     private const VFSSTREAM_URL    = self::VFSSTREAM_PREFIX . '//';
 
-    /**
-     * provides a namespace dpending on looped folders after searching for parent exceptions, which you should use
-     */
-    protected string $providedNamespace;
-
     public function __construct(protected EventDispatcherInterface $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
@@ -48,7 +43,7 @@ class RecursiveParentExceptionResolver
     {
         $exceptionDirArray = null;
         $eventDispatcher   = $this->eventDispatcher;
-        $loopedPaths[]     = basename($path);
+        $loopedPaths       = [basename($path)];
         $path              = dirname($path);
 
         // loop as long a break listener doesn't stop propagation or we have empty directories
@@ -71,7 +66,7 @@ class RecursiveParentExceptionResolver
             foreach ($directory as $item) {
                 $breakEvent = new FileEvent($item);
                 $eventDispatcher->dispatch($breakEvent, 'file.break');
-                if (false !== $breakEvent->isPropagationStopped()) {
+                if (true === $breakEvent->isPropagationStopped()) {
                     break 2;
                 }
             }
@@ -79,7 +74,7 @@ class RecursiveParentExceptionResolver
             $path          = dirname($path) !== static::VFSSTREAM_PREFIX ? dirname($path) : static::VFSSTREAM_URL;
             $loopedPaths[] = basename($path);
             //break early cuz DirectoryIterator can't handle vfs root folder
-        } while ((0 === count($directory) || ! $breakEvent->isPropagationStopped()) && $path !== static::VFSSTREAM_URL);
+        } while (0 === count($directory) || $path !== static::VFSSTREAM_URL);
 
         return $exceptionDirArray;
     }
