@@ -72,10 +72,12 @@ class ExceptionGeneratorCommand extends Command
         }
 
         /** @var QuestionHelper $questionHelper */
-        $questionHelper  = $this->getHelper('question');
+        $questionHelper = $this->getHelper('question');
+
         $eventDispatcher = new EventDispatcher();
         $eventDispatcher->addSubscriber(new CreateExceptionListener($output, $input, $questionHelper));
-        $namespaceResolver   = new RecursiveNamespaceResolver($eventDispatcher);
+        $namespaceResolver = new RecursiveNamespaceResolver($eventDispatcher);
+
         $namespace           = $namespaceResolver->resolveNamespace($path);
         $templatePathMatcher = new TemplatePathMatcher($path, $this->getApplication()->getHome());
 
@@ -87,7 +89,7 @@ class ExceptionGeneratorCommand extends Command
 
         $useParents = $input->getOption('no-parents') ? false : true;
 
-        $output->writeln('Using path for templates: ', OutputInterface::VERBOSITY_VERY_VERBOSE);
+        $output->writeln('Using path for templates: "' . $templatePath . '"', OutputInterface::VERBOSITY_VERY_VERBOSE);
         $output->writeln('Exception-Path: "' . $exceptionTemplate . '"', OutputInterface::VERBOSITY_VERY_VERBOSE);
         $output->writeln('Interface-Path: "' . $interfaceTemplate . '"', OutputInterface::VERBOSITY_VERY_VERBOSE);
 
@@ -100,6 +102,7 @@ class ExceptionGeneratorCommand extends Command
         if (false !== $useParents) {
             $parentExceptionResolver = new RecursiveParentExceptionResolver($eventDispatcher);
             $parentExceptionDirs     = $parentExceptionResolver->resolveExceptionDirs($path);
+
             if (is_array($parentExceptionDirs)) {
                 $parentExceptionDirs = array_reverse($parentExceptionDirs);
                 foreach ($parentExceptionDirs as $parentExceptionDir) {
@@ -107,11 +110,11 @@ class ExceptionGeneratorCommand extends Command
                     $parentExceptionNamespace = $namespaceResolver->resolveNamespace($parentExceptionDir);
 
                     $output->writeln(
-                        'BaseExceptionPath: ' . $parentExceptionDir,
+                        'BaseExceptionPath: "' . $parentExceptionDir . '"',
                         OutputInterface::VERBOSITY_VERY_VERBOSE
                     );
                     $output->writeln(
-                        'BaseExceptionNamespace: ' . $parentExceptionNamespace,
+                        'BaseExceptionNamespace: "' . $parentExceptionNamespace . '"',
                         OutputInterface::VERBOSITY_VERY_VERBOSE
                     );
 
@@ -122,6 +125,7 @@ class ExceptionGeneratorCommand extends Command
                         $output,
                         $input
                     );
+
                     $parentExceptionCreator->create(
                         $parentExceptionNamespace,
                         $parentExceptionDir,
@@ -149,6 +153,7 @@ class ExceptionGeneratorCommand extends Command
             $output,
             $input
         );
+
         $exceptionCreator->create($inputNamespace, $path . '/Exception', $parentExceptionNamespace);
 
         return 0;
@@ -157,7 +162,7 @@ class ExceptionGeneratorCommand extends Command
     /**
      * Realpath.
      */
-    protected function realpath(?string $path): string|bool
+    private function realpath(?string $path): string|bool
     {
         if (null === $path) {
             return '';

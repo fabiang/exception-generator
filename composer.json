@@ -11,8 +11,7 @@
     "autoload-dev": {
         "psr-4": {
             "Fabiang\\ExceptionGenerator\\IntegrationTest\\": "tests/features/bootstrap",
-            "Fabiang\\ExceptionGenerator\\IntegrationTest\\Initializer\\": "tests/features/initializer",
-            "Fabiang\\ExceptionGenerator\\TestHelper\\": "tests/helper"
+            "Fabiang\\ExceptionGenerator\\IntegrationTest\\Initializer\\": "tests/features/initializer"
         },
         "files": [
             "vendor/phpunit/phpunit/src/Framework/Assert/Functions.php"

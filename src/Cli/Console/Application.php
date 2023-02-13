@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 
 use function getenv;
 
-final class Application extends ConsoleApplication
+class Application extends ConsoleApplication
 {
     /**
      * Home directory.

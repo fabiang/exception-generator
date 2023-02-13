@@ -17,6 +17,9 @@ use function dirname;
 
 class RecursiveParentExceptionResolver
 {
+    private const VFSSTREAM_PREFIX = 'vfs:';
+    private const VFSSTREAM_URL    = self::VFSSTREAM_PREFIX . '//';
+
     /**
      * provides a namespace dpending on looped folders after searching for parent exceptions, which you should use
      */
@@ -47,10 +50,12 @@ class RecursiveParentExceptionResolver
         $eventDispatcher   = $this->eventDispatcher;
         $loopedPaths[]     = basename($path);
         $path              = dirname($path);
+
         // loop as long a break listener doesn't stop propagation or we have empty directories
         // we iterate through directories up
         do {
             $directory = $this->getDirectoryContents($path);
+
             // loop over files/directories and check if the listener can find an exception directory
             foreach ($directory as $item) {
                 $exceptionDirectoryEvent = new FileEvent($item);
@@ -70,10 +75,11 @@ class RecursiveParentExceptionResolver
                     break 2;
                 }
             }
-            $path          = dirname($path) !== 'vfs:' ? dirname($path) : 'vfs://';
+
+            $path          = dirname($path) !== static::VFSSTREAM_PREFIX ? dirname($path) : static::VFSSTREAM_URL;
             $loopedPaths[] = basename($path);
             //break early cuz DirectoryIterator can't handle vfs root folder
-        } while ((0 === count($directory) || ! $breakEvent->isPropagationStopped()) && $path !== 'vfs://');
+        } while ((0 === count($directory) || ! $breakEvent->isPropagationStopped()) && $path !== static::VFSSTREAM_URL);
 
         return $exceptionDirArray;
     }

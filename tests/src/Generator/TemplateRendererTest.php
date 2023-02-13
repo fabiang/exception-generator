@@ -91,7 +91,7 @@ final class TemplateRendererTest extends TestCase
      * @covers ::getRenderer
      * @covers ::addPath
      */
-    public function testZFRendererGetTemplatePathPassed(): void
+    public function testLaminasRendererGetTemplatePathPassed(): void
     {
         $templateException = vfsStream::url('test/templates/exception.phtml');
 

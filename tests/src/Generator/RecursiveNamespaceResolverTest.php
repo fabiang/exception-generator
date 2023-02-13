@@ -9,13 +9,13 @@ use Fabiang\ExceptionGenerator\BreakListener\RootDirectoryListener;
 use Fabiang\ExceptionGenerator\Event\FileEvent;
 use Fabiang\ExceptionGenerator\FileLoopListener\ComposerJsonListener;
 use Fabiang\ExceptionGenerator\FileLoopListener\PHPFileListener;
-use LogicException;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 use function dirname;
 use function get_class;
@@ -265,19 +265,18 @@ final class RecursiveNamespaceResolverTest extends TestCase
      */
     public function testRegisterDefaultListeners(): void
     {
-        $eventDispatcher = $this->createMock(EventDispatcher::class);
-
-        $eventDispatcher->expects($this->exactly(4))
-            ->method('addSubscriber')
-            ->willReturnCallback(fn (object $instance) => match (get_class($instance)) {
+        $eventDispatcher = $this->prophesize(EventDispatcher::class);
+        $eventDispatcher->addSubscriber(Argument::type(EventSubscriberInterface::class))
+            ->shouldBeCalledTimes(4)
+            ->will(fn (array $args) => match (get_class($args[0])) {
                 PHPFileListener::class => true,
                 ComposerJsonListener::class => true,
                 GitDirectoryListener::class => true,
                 RootDirectoryListener::class => true,
-                default => throw new LogicException()
+                default => $this->fail('Unknown listener')
             });
 
-        $object = new RecursiveNamespaceResolver($eventDispatcher);
-        $this->assertSame($eventDispatcher, $object->getEventDispatcher());
+        $object = new RecursiveNamespaceResolver($eventDispatcher->reveal());
+        $this->assertInstanceOf(EventDispatcher::class, $object->getEventDispatcher());
     }
 }
