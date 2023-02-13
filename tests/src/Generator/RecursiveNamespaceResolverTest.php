@@ -11,8 +11,10 @@ use Fabiang\ExceptionGenerator\FileLoopListener\ComposerJsonListener;
 use Fabiang\ExceptionGenerator\FileLoopListener\PHPFileListener;
 use LogicException;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 use function dirname;
@@ -23,8 +25,10 @@ use function get_class;
  */
 final class RecursiveNamespaceResolverTest extends TestCase
 {
+    use ProphecyTrait;
+
     private RecursiveNamespaceResolver $object;
-    private MockObject $eventDispatcher;
+    private ObjectProphecy $eventDispatcher;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -32,8 +36,9 @@ final class RecursiveNamespaceResolverTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->eventDispatcher = $this->createMock(EventDispatcher::class);
-        $this->object          = new RecursiveNamespaceResolver($this->eventDispatcher);
+        $this->eventDispatcher = $this->prophesize(EventDispatcher::class);
+
+        $this->object = new RecursiveNamespaceResolver($this->eventDispatcher->reveal());
         vfsStream::setup('namespace-resolver', null, ['subdir' => []]);
     }
 
@@ -49,14 +54,15 @@ final class RecursiveNamespaceResolverTest extends TestCase
      */
     public function testResolveNamespaceEmptyDirectory(): void
     {
-        $this->eventDispatcher->expects($this->any())
-            ->method('dispatch')
-            ->will($this->returnCallback(function (FileEvent $event, $eventName) {
-                if ($eventName === 'file.break') {
+        $this->eventDispatcher->dispatch(Argument::type(FileEvent::class), Argument::any())
+            ->will(function (array $args) {
+                $event = $args[0];
+                if ($args[1] === 'file.break') {
                     $event->stopPropagation();
                 }
                 return $event;
-            }));
+            });
+
         $this->assertNull($this->object->resolveNamespace(vfsStream::url('namespace-resolver/subdir')));
     }
 
@@ -72,14 +78,14 @@ final class RecursiveNamespaceResolverTest extends TestCase
      */
     public function testResolveNamespaceFoundNamespaceByAListener(): void
     {
-        $this->eventDispatcher->expects($this->any())
-            ->method('dispatch')
-            ->will($this->returnCallback(function (FileEvent $event, $eventName) {
-                if ($eventName === 'file.loop') {
-                    $event->setNamespace('MyNameSpaceTest');
-                }
-                return $event;
-            }));
+        $this->eventDispatcher->dispatch(Argument::type(FileEvent::class), Argument::any())
+        ->will(function (array $args) {
+            $event = $args[0];
+            if ($args[1] === 'file.loop') {
+                $event->setNamespace('MyNameSpaceTest');
+            }
+            return $event;
+        });
 
         $this->assertSame(
             'MyNameSpaceTest',
@@ -99,15 +105,15 @@ final class RecursiveNamespaceResolverTest extends TestCase
      */
     public function testResolveNamespaceFoundNamespaceByAListenerWhichStoppsPropagation(): void
     {
-        $this->eventDispatcher->expects($this->any())
-            ->method('dispatch')
-            ->will($this->returnCallback(function (FileEvent $event, $eventName) {
-                if ($eventName === 'file.loop') {
+        $this->eventDispatcher->dispatch(Argument::type(FileEvent::class), Argument::any())
+            ->will(function (array $args) {
+                $event = $args[0];
+                if ($args[1] === 'file.loop') {
                     $event->stopPropagation();
                     $event->setNamespace('MyNameSpaceTest');
                 }
                 return $event;
-            }));
+            });
 
         $this->assertSame(
             'MyNameSpaceTest',

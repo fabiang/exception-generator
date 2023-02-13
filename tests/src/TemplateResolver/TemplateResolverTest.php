@@ -6,8 +6,9 @@ namespace Fabiang\ExceptionGenerator\TemplateResolver;
 
 use Fabiang\ExceptionGenerator\TemplateResolver\TemplatePathMatcher;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 
 use function file_put_contents;
 use function realpath;
@@ -17,8 +18,10 @@ use function realpath;
  */
 final class TemplateResolverTest extends TestCase
 {
+    use ProphecyTrait;
+
     private TemplateResolver $object;
-    private MockObject $templatePathMatcher;
+    private ObjectProphecy $templatePathMatcher;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -28,11 +31,14 @@ final class TemplateResolverTest extends TestCase
     {
         vfsStream::setup('root', null, ['home' => []]);
 
-        $this->templatePathMatcher = $this->createMock(
+        $this->templatePathMatcher = $this->prophesize(
             TemplatePathMatcher::class
         );
 
-        $this->object = new TemplateResolver(vfsStream::url('root/home'), $this->templatePathMatcher);
+        $this->object = new TemplateResolver(
+            vfsStream::url('root/home'),
+            $this->templatePathMatcher->reveal()
+        );
     }
 
     /**
@@ -53,9 +59,9 @@ final class TemplateResolverTest extends TestCase
      */
     public function testResolveTemplateMatcherReturnsPath(): void
     {
-        $this->templatePathMatcher->expects($this->once())
-            ->method('match')
-            ->will($this->returnValue('/test'));
+        $this->templatePathMatcher->match('exception.phtml')
+            ->shouldBeCalledOnce()
+            ->willReturn('/test');
 
         $this->assertSame('/test/exception.phtml', $this->object->resolve('exception.phtml'));
     }
@@ -67,9 +73,9 @@ final class TemplateResolverTest extends TestCase
      */
     public function testResolveReturnsDefaultPath(): void
     {
-        $this->templatePathMatcher->expects($this->once())
-            ->method('match')
-            ->will($this->returnValue(false));
+        $this->templatePathMatcher->match('exception.phtml')
+            ->shouldBeCalledOnce()
+            ->willReturn(false);
 
         $this->assertSame(
             realpath(__DIR__ . '/../../../templates/exception.phtml'),

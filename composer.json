@@ -33,7 +33,9 @@
         "mikey179/vfsstream": "^1.6.11",
         "phpunit/phpunit": "^9.6.3",
         "vimeo/psalm": "^5.6",
-        "laminas/laminas-coding-standard": "^2.5"
+        "laminas/laminas-coding-standard": "^2.5",
+        "phpspec/prophecy": "^1.17",
+        "phpspec/prophecy-phpunit": "^2.0"
     },
     "bin": [
         "bin/exception-generator"

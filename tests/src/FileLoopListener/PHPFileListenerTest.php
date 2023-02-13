@@ -8,16 +8,19 @@ use DirectoryIterator;
 use Fabiang\ExceptionGenerator\Event\FileEvent;
 use Fabiang\ExceptionGenerator\Resolver\NamespaceResolver;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * @coversDefaultClass Fabiang\ExceptionGenerator\FileLoopListener\PHPFileListener
  */
 final class PHPFileListenerTest extends TestCase
 {
+    use ProphecyTrait;
+
     private PHPFileListener $object;
-    private MockObject $namespaceResolver;
+    private ObjectProphecy $namespaceResolver;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -25,8 +28,8 @@ final class PHPFileListenerTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->namespaceResolver = $this->createMock(NamespaceResolver::class);
-        $this->object            = new PHPFileListener($this->namespaceResolver);
+        $this->namespaceResolver = $this->prophesize(NamespaceResolver::class);
+        $this->object            = new PHPFileListener($this->namespaceResolver->reveal());
     }
 
     /**
@@ -39,13 +42,10 @@ final class PHPFileListenerTest extends TestCase
     {
         vfsStream::setup('test', null, ['Test.php' => 'composer json content']);
 
-        $this->namespaceResolver->expects($this->once())
-            ->method('resolve')
-            ->with(
-                $this->equalTo(vfsStream::url('test/Test.php')),
-                $this->equalTo([])
-            )
-            ->will($this->returnValue('MyNamespace\\'));
+        $this->namespaceResolver->resolve(
+            vfsStream::url('test/Test.php'),
+            []
+        )->shouldBeCalledOnce()->willReturn('MyNamespace\\');
 
         $directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $directoryIterator->seek(2);

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Fabiang\ExceptionGenerator\Listener;
 
 use Fabiang\ExceptionGenerator\Event\CreateExceptionEvent;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -22,10 +24,12 @@ use function strpos;
  */
 final class CreateExceptionListenerTest extends TestCase
 {
+    use ProphecyTrait;
+
     private CreateExceptionListener $object;
-    private MockObject $output;
-    private MockObject $input;
-    private MockObject $question;
+    private ObjectProphecy $output;
+    private ObjectProphecy $input;
+    private ObjectProphecy $question;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -33,10 +37,15 @@ final class CreateExceptionListenerTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->output   = $this->createMock(OutputInterface::class);
-        $this->input    = $this->createMock(InputInterface::class);
-        $this->question = $this->createMock(QuestionHelper::class);
-        $this->object   = new CreateExceptionListener($this->output, $this->input, $this->question);
+        $this->output   = $this->prophesize(OutputInterface::class);
+        $this->input    = $this->prophesize(InputInterface::class);
+        $this->question = $this->prophesize(QuestionHelper::class);
+
+        $this->object = new CreateExceptionListener(
+            $this->output->reveal(),
+            $this->input->reveal(),
+            $this->question->reveal()
+        );
     }
 
     /**
@@ -66,9 +75,8 @@ final class CreateExceptionListenerTest extends TestCase
      */
     public function testOnSkippedCreation(): void
     {
-        $this->output->expects($this->once())
-            ->method('writeln')
-            ->with($this->equalTo('Skipped creating "testfilename"'));
+        $this->output->writeln('Skipped creating "testfilename"')
+            ->shouldBeCalledOnce();
 
         $event = new CreateExceptionEvent('testfilename');
         $this->object->onSkippedCreation($event);
@@ -80,9 +88,8 @@ final class CreateExceptionListenerTest extends TestCase
      */
     public function testOnOverwriteAll(): void
     {
-        $this->output->expects($this->once())
-            ->method('writeln')
-            ->with($this->equalTo('Overwriting all existing files!'));
+        $this->output->writeln('Overwriting all existing files!')
+            ->shouldBeCalledOnce();
 
         $this->object->onOverwriteAll(new CreateExceptionEvent('testfilename'));
     }
@@ -93,21 +100,20 @@ final class CreateExceptionListenerTest extends TestCase
      */
     public function testOnWriteFileFileDoesntExist(): void
     {
-        $event = $this->createMock(CreateExceptionEvent::class);
+        $event = $this->prophesize(CreateExceptionEvent::class);
 
-        $this->output->expects($this->once())
-            ->method('writeln')
-            ->with($this->equalTo('Writing "testfilename"...'));
+        $this->output->writeln('Writing "testfilename"...')
+            ->shouldBeCalledOnce();
 
-        $event->expects($this->once())
-            ->method('getFileName')
+        $event->getFileName()
+            ->shouldBeCalledOnce()
             ->willReturn('testfilename');
 
-        $event->expects($this->once())
-            ->method('fileExists')
+        $event->fileExists()
+            ->shouldBeCalledOnce()
             ->willReturn(false);
 
-        $this->object->onWriteFile($event);
+        $this->object->onWriteFile($event->reveal());
     }
 
     /**
@@ -116,21 +122,20 @@ final class CreateExceptionListenerTest extends TestCase
      */
     public function testOnWriteFileFileDoesExist(): void
     {
-        $event = $this->createMock(CreateExceptionEvent::class);
+        $event = $this->prophesize(CreateExceptionEvent::class);
 
-        $this->output->expects($this->once())
-            ->method('writeln')
-            ->with($this->equalTo('Overwriting "testfilename"...'));
+        $this->output->writeln('Overwriting "testfilename"...')
+            ->shouldBeCalledOnce();
 
-        $event->expects($this->once())
-            ->method('getFileName')
+        $event->getFileName()
+            ->shouldBeCalledOnce()
             ->willReturn('testfilename');
 
-        $event->expects($this->once())
-            ->method('fileExists')
+        $event->fileExists()
+            ->shouldBeCalledOnce()
             ->willReturn(true);
 
-        $this->object->onWriteFile($event);
+        $this->object->onWriteFile($event->reveal());
     }
 
     /**
@@ -141,15 +146,14 @@ final class CreateExceptionListenerTest extends TestCase
      */
     public function testOnOverwriteConfirm(): void
     {
-        $this->question->expects($this->once())
-            ->method('ask')
-            ->with(
-                $this->equalTo($this->input),
-                $this->equalTo($this->output),
-                $this->callback(function (ChoiceQuestion $object) {
+        $this->question->ask(
+            Argument::type(InputInterface::class),
+            Argument::type(OutputInterface::class),
+            Argument::that(function (ChoiceQuestion $object) {
                     return strpos($object->getQuestion(), 'testfilename') !== false;
-                })
-            )
+            })
+        )
+            ->shouldBeCalledOnce()
             ->willReturn('y');
 
         $event = new CreateExceptionEvent('testfilename');

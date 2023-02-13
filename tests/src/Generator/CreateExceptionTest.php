@@ -7,8 +7,10 @@ namespace Fabiang\ExceptionGenerator\Generator;
 use Fabiang\ExceptionGenerator\Event\CreateExceptionEvent;
 use Fabiang\ExceptionGenerator\Generator\TemplateRenderer;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 use function array_shift;
@@ -21,9 +23,11 @@ use function is_dir;
  */
 final class CreateExceptionTest extends TestCase
 {
+    use ProphecyTrait;
+
     private CreateException $object;
-    private MockObject $eventDispatcher;
-    private MockObject $templateRenderer;
+    private ObjectProphecy $eventDispatcher;
+    private ObjectProphecy $templateRenderer;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -31,10 +35,10 @@ final class CreateExceptionTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->eventDispatcher  = $this->createMock(EventDispatcherInterface::class);
-        $this->templateRenderer = $this->createMock(TemplateRenderer::class);
+        $this->eventDispatcher  = $this->prophesize(EventDispatcherInterface::class);
+        $this->templateRenderer = $this->prophesize(TemplateRenderer::class);
 
-        $this->object = new CreateException($this->eventDispatcher, $this->templateRenderer);
+        $this->object = new CreateException($this->eventDispatcher->reveal(), $this->templateRenderer->reveal());
         vfsStream::setup('src', null, []);
     }
 
@@ -89,46 +93,45 @@ final class CreateExceptionTest extends TestCase
 
         $expectedFileNamesIndex = 0;
 
-        $this->templateRenderer->expects($this->exactly($templateCount))
-            ->method('render')
-            ->with(
-                $this->equalTo('testnamespace'),
-                $this->equalTo(null),
-                $this->callback(function ($name) use (&$expectedPassedClassNames) {
+        $this->templateRenderer->render(
+            'testnamespace',
+            null,
+            Argument::that(function ($name) use (&$expectedPassedClassNames) {
                     $currentName = array_shift($expectedPassedClassNames);
                     return $name === $currentName;
-                })
-            )
+            })
+        )
+            ->shouldBeCalledTimes($templateCount)
             ->willReturn($content);
 
-        $this->eventDispatcher->expects($this->exactly($dispatchCount))
-            ->method('dispatch')
-            ->with(
-                $this->callback(function (CreateExceptionEvent $event) use (
-                    $path,
-                    &$expectedFileNames,
-                    &$expectedFileNamesIndex
-                ) {
-                    if (! isset($expectedFileNames[$expectedFileNamesIndex])) {
-                        return true;
-                    }
+        $this->eventDispatcher->dispatch(
+            Argument::that(function (CreateExceptionEvent $event) use (
+                $path,
+                &$expectedFileNames,
+                &$expectedFileNamesIndex
+            ) {
+                if (! isset($expectedFileNames[$expectedFileNamesIndex])) {
+                    return true;
+                }
 
                     $currentFile = $expectedFileNames[$expectedFileNamesIndex++];
 
-                    // Workaround for Phpunit calls callback more often then expected
-                    // remove if {@link https://github.com/sebastianbergmann/phpunit-mock-objects/issues/181} is fixed
-                    if (null === $currentFile) {
-                        return true;
-                    }
+                if (null === $currentFile) {
+                    return true;
+                }
 
                     $currentFileName = $path . '/' . $currentFile;
                     return $event->getFileName() === $currentFileName;
-                }),
-                $this->callback(function ($eventName) use ($expectedEvents) {
+            }),
+            Argument::that(function (string $eventName) use ($expectedEvents) {
                     return in_array($eventName, $expectedEvents);
-                })
-            )
-            ->willReturnCallback(function (CreateExceptionEvent $event, $eventName) use ($confirm) {
+            })
+        )
+            ->shouldBeCalledTimes($dispatchCount)
+            ->will(function (array $args) use ($confirm) {
+                $event     = $args[0];
+                $eventName = $args[1];
+
                 if ($eventName === 'overwrite.confirm') {
                     $event->setConfirm($confirm);
                 }

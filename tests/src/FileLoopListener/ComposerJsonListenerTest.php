@@ -8,16 +8,19 @@ use DirectoryIterator;
 use Fabiang\ExceptionGenerator\Event\FileEvent;
 use Fabiang\ExceptionGenerator\Resolver\ComposerResolver;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * @coversDefaultClass Fabiang\ExceptionGenerator\FileLoopListener\ComposerJsonListener
  */
 final class ComposerJsonListenerTest extends TestCase
 {
+    use ProphecyTrait;
+
     private ComposerJsonListener $object;
-    private MockObject $composerResolver;
+    private ObjectProphecy $composerResolver;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -25,8 +28,8 @@ final class ComposerJsonListenerTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->composerResolver = $this->createMock(ComposerResolver::class);
-        $this->object           = new ComposerJsonListener($this->composerResolver);
+        $this->composerResolver = $this->prophesize(ComposerResolver::class);
+        $this->object           = new ComposerJsonListener($this->composerResolver->reveal());
     }
 
     /**
@@ -39,13 +42,9 @@ final class ComposerJsonListenerTest extends TestCase
     {
         vfsStream::setup('test', null, ['composer.json' => 'composer json content']);
 
-        $this->composerResolver->expects($this->once())
-            ->method('resolve')
-            ->with(
-                $this->equalTo(vfsStream::url('test/composer.json')),
-                $this->equalTo([])
-            )
-            ->will($this->returnValue('MyNamespace\\'));
+        $this->composerResolver->resolve(vfsStream::url('test/composer.json'), [])
+            ->willReturn('MyNamespace\\')
+            ->shouldBeCalledOnce();
 
         $directoryIterator = new DirectoryIterator(vfsStream::url('test'));
         $directoryIterator->seek(2);

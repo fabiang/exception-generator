@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Fabiang\ExceptionGenerator\Generator;
 
+use Laminas\View\Model\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Resolver\ResolverInterface;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 
 use function file_put_contents;
 
@@ -17,8 +20,10 @@ use function file_put_contents;
  */
 final class TemplateRendererTest extends TestCase
 {
+    use ProphecyTrait;
+
     private TemplateRenderer $object;
-    private MockObject $resolver;
+    private ObjectProphecy $resolver;
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -27,15 +32,15 @@ final class TemplateRendererTest extends TestCase
     protected function setUp(): void
     {
         $templatePath   = vfsStream::url('test/templates');
-        $this->resolver = $this->createMock(ResolverInterface::class);
-        $this->resolver->expects($this->any())
-            ->method('resolve')
-            ->willReturnCallback(function ($name) use ($templatePath) {
+        $this->resolver = $this->prophesize(ResolverInterface::class);
+        $this->resolver->resolve(Argument::type(ViewModel::class))
+            ->will(function (array $args) use ($templatePath) {
+                $name = $args[0];
                 return $templatePath . '/' . $name . '.phtml';
             });
 
         $renderer = new PhpRenderer();
-        $renderer->setResolver($this->resolver);
+        $renderer->setResolver($this->resolver->reveal());
         vfsStream::setup('test', null, ['templates' => []]);
         $this->object = new TemplateRenderer();
         $this->object->addPath('exception', vfsStream::url('test/templates/exception.phtml'));
