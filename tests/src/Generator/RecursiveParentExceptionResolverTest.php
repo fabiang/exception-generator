@@ -133,14 +133,13 @@ final class RecursiveParentExceptionResolverTest extends TestCase
     public function addDefaultSubscribers(): void
     {
         $eventDispatcher = $this->prophesize(EventDispatcherInterface::class);
-        $eventDispatcher->addSubscriber(Argument::type(EventSubscriberInterface::class))
-            ->shouldBeCalledTimes(3)
-            ->will(fn (array $args) => match (get_class($args[0])) {
-                GitDirectoryListener::class => true,
-                RootDirectoryListener::class => true,
-                ExceptionDirListener::class => true,
-                default => $this->fail('Unknown listener')
-            });
+        $eventDispatcher->addSubscriber(Argument::that(fn (EventSubscriberInterface $es) => match (get_class($es)) {
+            GitDirectoryListener::class => true,
+            RootDirectoryListener::class => true,
+            ExceptionDirListener::class => true,
+            default => $this->fail('Unknown listener')
+        }))
+        ->shouldBeCalledTimes(3);
 
         $object = new RecursiveParentExceptionResolver($eventDispatcher->reveal());
         $this->assertInstanceOf(EventDispatcherInterface::class, $object->getEventDispatcher());

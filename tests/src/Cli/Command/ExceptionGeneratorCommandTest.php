@@ -67,8 +67,8 @@ class ExceptionGeneratorCommandTest extends TestCase
         $input->getOption('no-parents')->willReturn(true);
         $input->getOption('template-path')->willReturn(vfsStream::url('cwd/template_path'));
 
-        $input->bind(Argument::type(InputDefinition::class))->willReturn(null);
-        $input->validate()->willReturn(null);
+        $input->bind(Argument::type(InputDefinition::class))->shouldBeCalled();
+        $input->validate()->shouldBeCalled();
 
         $output->writeln(
             'Using path for templates: "vfs://cwd/template_path"',
@@ -148,8 +148,8 @@ class ExceptionGeneratorCommandTest extends TestCase
         $input->getOption('no-parents')->willReturn(false);
         $input->getOption('template-path')->willReturn(vfsStream::url('cwd/template_path'));
 
-        $input->bind(Argument::type(InputDefinition::class))->willReturn(null);
-        $input->validate()->willReturn(null);
+        $input->bind(Argument::type(InputDefinition::class))->shouldBeCalled();
+        $input->validate()->shouldBeCalled();
 
         $output->writeln(
             'Using path for templates: "vfs://cwd/template_path"',

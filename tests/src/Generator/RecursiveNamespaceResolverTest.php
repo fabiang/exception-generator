@@ -266,15 +266,14 @@ final class RecursiveNamespaceResolverTest extends TestCase
     public function testRegisterDefaultListeners(): void
     {
         $eventDispatcher = $this->prophesize(EventDispatcher::class);
-        $eventDispatcher->addSubscriber(Argument::type(EventSubscriberInterface::class))
-            ->shouldBeCalledTimes(4)
-            ->will(fn (array $args) => match (get_class($args[0])) {
-                PHPFileListener::class => true,
-                ComposerJsonListener::class => true,
-                GitDirectoryListener::class => true,
-                RootDirectoryListener::class => true,
-                default => $this->fail('Unknown listener')
-            });
+        $eventDispatcher->addSubscriber(Argument::that(fn (EventSubscriberInterface $es) => match (get_class($es)) {
+            PHPFileListener::class => true,
+            ComposerJsonListener::class => true,
+            GitDirectoryListener::class => true,
+            RootDirectoryListener::class => true,
+            default => $this->fail('Unknown listener')
+        }))
+        ->shouldBeCalledTimes(4);
 
         $object = new RecursiveNamespaceResolver($eventDispatcher->reveal());
         $this->assertInstanceOf(EventDispatcher::class, $object->getEventDispatcher());

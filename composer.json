@@ -20,8 +20,8 @@
     "minimum-stability": "stable",
     "require": {
         "php": "^8.0",
-        "symfony/console": "^6.0",
-        "symfony/event-dispatcher": "^6.0",
+        "symfony/console": "^6.0 || ^7.0",
+        "symfony/event-dispatcher": "^6.0 || ^7.0",
         "laminas/laminas-escaper": "^2.12",
         "laminas/laminas-filter": "^2.31",
         "laminas/laminas-servicemanager": "^3.0 || ^2.2",
@@ -30,7 +30,7 @@
     "require-dev": {
         "behat/behat": "^3.12",
         "mikey179/vfsstream": "^1.6.11",
-        "phpunit/phpunit": "^9.6.3",
+        "phpunit/phpunit": "^9.6.3 || ^10.0",
         "vimeo/psalm": "^5.6",
         "laminas/laminas-coding-standard": "^2.5",
         "phpspec/prophecy": "^1.17",
